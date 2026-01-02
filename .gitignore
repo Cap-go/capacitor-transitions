@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+*.tgz
+
+# Example apps
+examples/*/node_modules/
+examples/*/dist/
+examples/*/.angular/

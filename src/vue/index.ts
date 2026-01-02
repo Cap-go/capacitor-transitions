@@ -1,0 +1,175 @@
+/**
+ * Vue bindings for @capgo/transitions
+ * Helper functions for using web components in Vue
+ */
+
+import {
+  TransitionController,
+  createTransitionController,
+} from '../core/transition-controller'
+import type {
+  TransitionGlobalConfig,
+  TransitionDirection,
+  NavigationEvent,
+} from '../core/types'
+
+// Ensure web components are registered
+import '../components'
+
+/** Store for transition controller */
+let globalController: TransitionController | null = null
+let globalDirection: TransitionDirection = 'forward'
+
+/**
+ * Initialize the transition system
+ */
+export function initTransitions(config: TransitionGlobalConfig = {}): TransitionController {
+  globalController = createTransitionController(config)
+  return globalController
+}
+
+/**
+ * Get the global transition controller
+ */
+export function getController(): TransitionController {
+  if (!globalController) {
+    globalController = createTransitionController()
+  }
+  return globalController
+}
+
+/**
+ * Get/set the current transition direction
+ */
+export function getDirection(): TransitionDirection {
+  return globalDirection
+}
+
+export function setDirection(direction: TransitionDirection): void {
+  globalDirection = direction
+}
+
+/**
+ * Set up a router outlet element
+ * Call this in onMounted with a ref to the cap-router-outlet element
+ */
+export function setupRouterOutlet(
+  element: HTMLElement,
+  options: {
+    keepInDom?: boolean
+    maxCached?: number
+    platform?: 'ios' | 'android' | 'auto'
+    duration?: number
+  } = {}
+): void {
+  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options
+
+  element.setAttribute('platform', platform)
+  if (duration) element.setAttribute('duration', String(duration))
+  element.setAttribute('keep-in-dom', String(keepInDom))
+  element.setAttribute('max-cached', String(maxCached))
+}
+
+/**
+ * Set up a page element with lifecycle callbacks
+ * Call this in onMounted with a ref to the cap-page element
+ * Returns a cleanup function to call in onUnmounted
+ *
+ * @example
+ * ```vue
+ * <script setup>
+ * import { ref, onMounted, onUnmounted } from 'vue'
+ * import { setupPage } from '@capgo/transitions/vue'
+ *
+ * const pageRef = ref<HTMLElement | null>(null)
+ * let cleanup: (() => void) | undefined
+ *
+ * onMounted(() => {
+ *   if (pageRef.value) {
+ *     cleanup = setupPage(pageRef.value, {
+ *       onDidEnter: () => console.log('entered'),
+ *     })
+ *   }
+ * })
+ *
+ * onUnmounted(() => cleanup?.())
+ * </script>
+ *
+ * <template>
+ *   <cap-page ref="pageRef">...</cap-page>
+ * </template>
+ * ```
+ */
+export function setupPage(
+  element: HTMLElement,
+  callbacks?: {
+    onWillEnter?: (event: NavigationEvent) => void
+    onDidEnter?: (event: NavigationEvent) => void
+    onWillLeave?: (event: NavigationEvent) => void
+    onDidLeave?: (event: NavigationEvent) => void
+  }
+): () => void {
+  const handleWillEnter = (e: Event) => {
+    callbacks?.onWillEnter?.((e as CustomEvent).detail)
+  }
+  const handleDidEnter = (e: Event) => {
+    callbacks?.onDidEnter?.((e as CustomEvent).detail)
+  }
+  const handleWillLeave = (e: Event) => {
+    callbacks?.onWillLeave?.((e as CustomEvent).detail)
+  }
+  const handleDidLeave = (e: Event) => {
+    callbacks?.onDidLeave?.((e as CustomEvent).detail)
+  }
+
+  element.addEventListener('cap-will-enter', handleWillEnter)
+  element.addEventListener('cap-did-enter', handleDidEnter)
+  element.addEventListener('cap-will-leave', handleWillLeave)
+  element.addEventListener('cap-did-leave', handleDidLeave)
+
+  // Return cleanup function
+  return () => {
+    element.removeEventListener('cap-will-enter', handleWillEnter)
+    element.removeEventListener('cap-did-enter', handleDidEnter)
+    element.removeEventListener('cap-will-leave', handleWillLeave)
+    element.removeEventListener('cap-did-leave', handleDidLeave)
+  }
+}
+
+/**
+ * Create a transition-aware navigate function
+ * Wraps your router's navigate function to set the direction before navigating
+ *
+ * @example
+ * ```vue
+ * <script setup>
+ * import { useRouter } from 'vue-router'
+ * import { createTransitionNavigate } from '@capgo/transitions/vue'
+ *
+ * const router = useRouter()
+ * const transitionNavigate = createTransitionNavigate((to) => router.push(to))
+ *
+ * // Forward navigation
+ * transitionNavigate('/details/1')
+ *
+ * // Back navigation
+ * transitionNavigate('/', 'back')
+ * </script>
+ * ```
+ */
+export function createTransitionNavigate(navigate: (to: string) => void) {
+  return (to: string, direction: TransitionDirection = 'forward') => {
+    setDirection(direction)
+    navigate(to)
+  }
+}
+
+// Re-export types
+export type {
+  TransitionGlobalConfig,
+  TransitionDirection,
+  NavigationEvent,
+} from '../core/types'
+
+// Export controller for advanced usage
+export { TransitionController } from '../core/transition-controller'

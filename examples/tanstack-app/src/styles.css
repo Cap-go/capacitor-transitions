@@ -1,0 +1,165 @@
+/* Base styles - no framework opinions, just for demo */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #f5f5f7;
+}
+
+/* Toolbar styles */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  min-height: 56px;
+}
+
+.toolbar h1 {
+  font-size: 17px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 17px;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  left: 8px;
+}
+
+/* Content styles */
+.page-content {
+  padding: 20px;
+}
+
+.page-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1d1d1f;
+}
+
+.page-content p {
+  font-size: 15px;
+  color: #6e6e73;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* List styles */
+.list {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 17px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: #f0f0f0;
+}
+
+.chevron {
+  color: #c7c7cc;
+  font-size: 20px;
+}
+
+/* Button styles */
+.primary-button {
+  background: #007aff;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.primary-button:active {
+  opacity: 0.8;
+}
+
+/* Tab bar styles */
+.tab-bar {
+  display: flex;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 8px;
+  font-size: 11px;
+  color: #8e8e93;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #007aff;
+}
+
+/* Scroll demo */
+.scroll-demo {
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+}
+
+.scroll-demo h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.scroll-demo p {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Safe areas */
+cap-header {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+cap-footer {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

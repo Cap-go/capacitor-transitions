@@ -1,0 +1,91 @@
+{
+  "name": "@capgo/transitions",
+  "version": "0.0.1",
+  "description": "Framework-agnostic page transitions for Capacitor apps - iOS-style navigation without opinions",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.mjs",
+      "require": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue/index.mjs",
+      "require": "./dist/vue/index.js",
+      "types": "./dist/vue/index.d.ts"
+    },
+    "./angular": {
+      "import": "./dist/angular/index.mjs",
+      "require": "./dist/angular/index.js",
+      "types": "./dist/angular/index.d.ts"
+    },
+    "./svelte": {
+      "import": "./dist/svelte/index.mjs",
+      "require": "./dist/svelte/index.js",
+      "types": "./dist/svelte/index.d.ts"
+    },
+    "./solid": {
+      "import": "./dist/solid/index.mjs",
+      "require": "./dist/solid/index.js",
+      "types": "./dist/solid/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "capacitor",
+    "transitions",
+    "router",
+    "animations",
+    "ios",
+    "navigation",
+    "page-transitions",
+    "web-components",
+    "framework-agnostic"
+  ],
+  "author": "Capgo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cap-go/capacitor-transitions.git"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0",
+    "eslint": "^9.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vue": ">=3.0.0",
+    "@angular/core": ">=17.0.0",
+    "svelte": ">=4.0.0",
+    "solid-js": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "vue": { "optional": true },
+    "@angular/core": { "optional": true },
+    "svelte": { "optional": true },
+    "solid-js": { "optional": true }
+  }
+}

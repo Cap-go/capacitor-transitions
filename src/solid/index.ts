@@ -2,29 +2,23 @@
  * Solid bindings for @capgo/transitions
  */
 
-import {
-  TransitionController,
-  createTransitionController,
-} from '../core/transition-controller'
-import type {
-  TransitionGlobalConfig,
-  TransitionDirection,
-  NavigationEvent,
-} from '../core/types'
+import type { TransitionController } from '../core/transition-controller';
+import { createTransitionController } from '../core/transition-controller';
+import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
 
 // Ensure web components are registered
-import '../components'
+import '../components';
 
 /** Store for transition controller */
-let globalController: TransitionController | null = null
-let globalDirection: TransitionDirection = 'forward'
+let globalController: TransitionController | null = null;
+let globalDirection: TransitionDirection = 'forward';
 
 /**
  * Initialize the transition system
  */
 export function initTransitions(config: TransitionGlobalConfig = {}): TransitionController {
-  globalController = createTransitionController(config)
-  return globalController
+  globalController = createTransitionController(config);
+  return globalController;
 }
 
 /**
@@ -32,20 +26,20 @@ export function initTransitions(config: TransitionGlobalConfig = {}): Transition
  */
 export function getController(): TransitionController {
   if (!globalController) {
-    globalController = createTransitionController()
+    globalController = createTransitionController();
   }
-  return globalController
+  return globalController;
 }
 
 /**
  * Get/set the current transition direction
  */
 export function getDirection(): TransitionDirection {
-  return globalDirection
+  return globalDirection;
 }
 
 export function setDirection(direction: TransitionDirection): void {
-  globalDirection = direction
+  globalDirection = direction;
 }
 
 /**
@@ -54,18 +48,18 @@ export function setDirection(direction: TransitionDirection): void {
 export function setupRouterOutlet(
   element: HTMLElement,
   options: {
-    keepInDom?: boolean
-    maxCached?: number
-    platform?: 'ios' | 'android' | 'auto'
-    duration?: number
-  } = {}
+    keepInDom?: boolean;
+    maxCached?: number;
+    platform?: 'ios' | 'android' | 'auto';
+    duration?: number;
+  } = {},
 ): void {
-  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options
+  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options;
 
-  element.setAttribute('platform', platform)
-  if (duration) element.setAttribute('duration', String(duration))
-  element.setAttribute('keep-in-dom', String(keepInDom))
-  element.setAttribute('max-cached', String(maxCached))
+  element.setAttribute('platform', platform);
+  if (duration) element.setAttribute('duration', String(duration));
+  element.setAttribute('keep-in-dom', String(keepInDom));
+  element.setAttribute('max-cached', String(maxCached));
 }
 
 /**
@@ -74,55 +68,53 @@ export function setupRouterOutlet(
 export function setupPage(
   element: HTMLElement,
   callbacks?: {
-    onWillEnter?: (event: NavigationEvent) => void
-    onDidEnter?: (event: NavigationEvent) => void
-    onWillLeave?: (event: NavigationEvent) => void
-    onDidLeave?: (event: NavigationEvent) => void
-  }
+    onWillEnter?: (event: NavigationEvent) => void;
+    onDidEnter?: (event: NavigationEvent) => void;
+    onWillLeave?: (event: NavigationEvent) => void;
+    onDidLeave?: (event: NavigationEvent) => void;
+  },
 ): () => void {
   const handleWillEnter = (e: Event) => {
-    callbacks?.onWillEnter?.((e as CustomEvent).detail)
-  }
+    callbacks?.onWillEnter?.((e as CustomEvent).detail);
+  };
   const handleDidEnter = (e: Event) => {
-    callbacks?.onDidEnter?.((e as CustomEvent).detail)
-  }
+    callbacks?.onDidEnter?.((e as CustomEvent).detail);
+  };
   const handleWillLeave = (e: Event) => {
-    callbacks?.onWillLeave?.((e as CustomEvent).detail)
-  }
+    callbacks?.onWillLeave?.((e as CustomEvent).detail);
+  };
   const handleDidLeave = (e: Event) => {
-    callbacks?.onDidLeave?.((e as CustomEvent).detail)
-  }
+    callbacks?.onDidLeave?.((e as CustomEvent).detail);
+  };
 
-  element.addEventListener('cap-will-enter', handleWillEnter)
-  element.addEventListener('cap-did-enter', handleDidEnter)
-  element.addEventListener('cap-will-leave', handleWillLeave)
-  element.addEventListener('cap-did-leave', handleDidLeave)
+  element.addEventListener('cap-will-enter', handleWillEnter);
+  element.addEventListener('cap-did-enter', handleDidEnter);
+  element.addEventListener('cap-will-leave', handleWillLeave);
+  element.addEventListener('cap-did-leave', handleDidLeave);
 
   // Return cleanup function
   return () => {
-    element.removeEventListener('cap-will-enter', handleWillEnter)
-    element.removeEventListener('cap-did-enter', handleDidEnter)
-    element.removeEventListener('cap-will-leave', handleWillLeave)
-    element.removeEventListener('cap-did-leave', handleDidLeave)
-  }
+    element.removeEventListener('cap-will-enter', handleWillEnter);
+    element.removeEventListener('cap-did-enter', handleDidEnter);
+    element.removeEventListener('cap-will-leave', handleWillLeave);
+    element.removeEventListener('cap-did-leave', handleDidLeave);
+  };
 }
 
 /**
  * Create a transition-aware navigate function
  */
-export function createTransitionNavigate(navigate: (to: string) => void) {
+export function createTransitionNavigate(
+  navigate: (to: string) => void,
+): (to: string, direction?: TransitionDirection) => void {
   return (to: string, direction: TransitionDirection = 'forward') => {
-    setDirection(direction)
-    navigate(to)
-  }
+    setDirection(direction);
+    navigate(to);
+  };
 }
 
 // Re-export types
-export type {
-  TransitionGlobalConfig,
-  TransitionDirection,
-  NavigationEvent,
-} from '../core/types'
+export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
 
 // Export controller for advanced usage
-export { TransitionController } from '../core/transition-controller'
+export { TransitionController } from '../core/transition-controller';

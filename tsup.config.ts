@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsup';
 
 export default defineConfig([
   // Core library (framework-agnostic)
@@ -45,4 +45,4 @@ export default defineConfig([
     sourcemap: true,
     external: ['solid-js'],
   },
-])
+]);

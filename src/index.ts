@@ -12,9 +12,12 @@
  */
 
 // Core exports
+import type { CapRouterOutlet, CapPage, CapHeader, CapContent, CapFooter } from './components';
+
 export type {
   TransitionDirection,
   TransitionPlatform,
+  ResolvedPlatform,
   TransitionTarget,
   TransitionEasing,
   TransitionConfig,
@@ -27,7 +30,7 @@ export type {
   TransitionResult,
   RouterOutletOptions,
   PageOptions,
-} from './core/types'
+} from './core/types';
 
 // Animation system
 export {
@@ -47,7 +50,7 @@ export {
   cancelAnimations,
   createHeaderTransition,
   createFooterTransition,
-} from './core/animations'
+} from './core/animations';
 
 // View Transitions API
 export {
@@ -57,37 +60,31 @@ export {
   clearViewTransitionName,
   VIEW_TRANSITIONS_CSS,
   injectViewTransitionsCSS,
-} from './core/view-transitions'
+} from './core/view-transitions';
 
 // Transition controller
 export {
   TransitionController,
   getTransitionController,
   createTransitionController,
-} from './core/transition-controller'
+} from './core/transition-controller';
 
 // Web Components
-export {
-  CapRouterOutlet,
-  CapPage,
-  CapHeader,
-  CapContent,
-  CapFooter,
-} from './components'
+export { CapRouterOutlet, CapPage, CapHeader, CapContent, CapFooter } from './components';
 
 // Utility to initialize all components
 export function initCapTransitions(): void {
   // Import components to trigger registration
-  import('./components')
+  import('./components');
 }
 
 // Type declarations for custom elements
 declare global {
   interface HTMLElementTagNameMap {
-    'cap-router-outlet': import('./components/cap-router-outlet').CapRouterOutlet
-    'cap-page': import('./components/cap-page').CapPage
-    'cap-header': import('./components/cap-header').CapHeader
-    'cap-content': import('./components/cap-content').CapContent
-    'cap-footer': import('./components/cap-footer').CapFooter
+    'cap-router-outlet': CapRouterOutlet;
+    'cap-page': CapPage;
+    'cap-header': CapHeader;
+    'cap-content': CapContent;
+    'cap-footer': CapFooter;
   }
 }

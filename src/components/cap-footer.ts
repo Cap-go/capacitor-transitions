@@ -9,38 +9,38 @@
  * Usage: <cap-footer>Your footer content</cap-footer>
  */
 export class CapFooter extends HTMLElement {
-  static get observedAttributes() {
-    return ['translucent']
+  static get observedAttributes(): string[] {
+    return ['translucent'];
   }
 
   constructor() {
-    super()
+    super();
 
     // Mark for transition controller
-    this.setAttribute('data-cap-footer', '')
+    this.setAttribute('data-cap-footer', '');
 
     // Set up minimal required styles
-    this.style.display = 'block'
-    this.style.position = 'relative'
-    this.style.zIndex = '10'
+    this.style.display = 'block';
+    this.style.position = 'relative';
+    this.style.zIndex = '10';
 
     // For view transitions API
-    this.style.viewTransitionName = 'cap-footer'
+    this.style.viewTransitionName = 'cap-footer';
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     // Ensure slot assignment if inside cap-page
     if (this.parentElement?.tagName === 'CAP-PAGE' && !this.hasAttribute('slot')) {
-      this.setAttribute('slot', 'footer')
+      this.setAttribute('slot', 'footer');
     }
   }
 
-  attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, newValue: string): void {
     switch (name) {
       case 'translucent':
         // Mark for framework-specific handling
-        this.dataset.translucent = newValue !== null ? 'true' : 'false'
-        break
+        this.dataset.translucent = newValue !== null ? 'true' : 'false';
+        break;
     }
   }
 
@@ -48,11 +48,11 @@ export class CapFooter extends HTMLElement {
    * Get the current height of the footer
    */
   get height(): number {
-    return this.offsetHeight
+    return this.offsetHeight;
   }
 }
 
 // Register the custom element
 if (typeof customElements !== 'undefined' && !customElements.get('cap-footer')) {
-  customElements.define('cap-footer', CapFooter)
+  customElements.define('cap-footer', CapFooter);
 }

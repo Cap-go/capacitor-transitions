@@ -4,13 +4,13 @@
  * Integrates with cap-router-outlet for transitions
  */
 
-import type { TransitionLifecycle, NavigationEvent } from '../core/types'
+import type { TransitionLifecycle, NavigationEvent } from '../core/types';
 
 export interface CapPageOptions {
   /** Unique key for this page */
-  key?: string
+  key?: string;
   /** Cache scroll position */
-  cacheScroll?: boolean
+  cacheScroll?: boolean;
 }
 
 /**
@@ -23,18 +23,18 @@ export interface CapPageOptions {
  * </cap-page>
  */
 export class CapPage extends HTMLElement {
-  private _lifecycle: TransitionLifecycle = {}
-  private _isActive = false
+  private _lifecycle: TransitionLifecycle = {};
+  private _isActive = false;
 
-  static get observedAttributes() {
-    return ['key', 'cache-scroll']
+  static get observedAttributes(): string[] {
+    return ['key', 'cache-scroll'];
   }
 
   constructor() {
-    super()
+    super();
 
     // Create shadow DOM with slots
-    const shadow = this.attachShadow({ mode: 'open' })
+    const shadow = this.attachShadow({ mode: 'open' });
 
     shadow.innerHTML = `
       <style>
@@ -95,27 +95,31 @@ export class CapPage extends HTMLElement {
       <div class="footer-container" part="footer">
         <slot name="footer"></slot>
       </div>
-    `
+    `;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     // Mark elements for the transition controller to find
-    this.markTransitionElements()
+    this.markTransitionElements();
 
     // Dispatch connected event
-    this.dispatchEvent(new CustomEvent('cap-page-connected', {
-      bubbles: true,
-      composed: true,
-      detail: { page: this },
-    }))
+    this.dispatchEvent(
+      new CustomEvent('cap-page-connected', {
+        bubbles: true,
+        composed: true,
+        detail: { page: this },
+      }),
+    );
   }
 
-  disconnectedCallback() {
-    this.dispatchEvent(new CustomEvent('cap-page-disconnected', {
-      bubbles: true,
-      composed: true,
-      detail: { page: this },
-    }))
+  disconnectedCallback(): void {
+    this.dispatchEvent(
+      new CustomEvent('cap-page-disconnected', {
+        bubbles: true,
+        composed: true,
+        detail: { page: this },
+      }),
+    );
   }
 
   /**
@@ -123,21 +127,21 @@ export class CapPage extends HTMLElement {
    */
   private markTransitionElements() {
     // Find and mark header
-    const header = this.querySelector('[slot="header"]')
+    const header = this.querySelector('[slot="header"]');
     if (header) {
-      header.setAttribute('data-cap-header', '')
+      header.setAttribute('data-cap-header', '');
     }
 
     // Find and mark content
-    const content = this.querySelector('[slot="content"]')
+    const content = this.querySelector('[slot="content"]');
     if (content) {
-      content.setAttribute('data-cap-content', '')
+      content.setAttribute('data-cap-content', '');
     }
 
     // Find and mark footer
-    const footer = this.querySelector('[slot="footer"]')
+    const footer = this.querySelector('[slot="footer"]');
     if (footer) {
-      footer.setAttribute('data-cap-footer', '')
+      footer.setAttribute('data-cap-footer', '');
     }
   }
 
@@ -145,113 +149,121 @@ export class CapPage extends HTMLElement {
    * Set lifecycle callbacks
    */
   set lifecycle(callbacks: TransitionLifecycle) {
-    this._lifecycle = callbacks
+    this._lifecycle = callbacks;
   }
 
   get lifecycle(): TransitionLifecycle {
-    return this._lifecycle
+    return this._lifecycle;
   }
 
   /**
    * Check if page is active
    */
   get isActive(): boolean {
-    return this._isActive
+    return this._isActive;
   }
 
   /**
    * Called when page will enter view
    */
   async willEnter(event: NavigationEvent): Promise<void> {
-    await this._lifecycle.onWillEnter?.(event)
-    this.dispatchEvent(new CustomEvent('cap-will-enter', {
-      bubbles: true,
-      detail: event,
-    }))
+    await this._lifecycle.onWillEnter?.(event);
+    this.dispatchEvent(
+      new CustomEvent('cap-will-enter', {
+        bubbles: true,
+        detail: event,
+      }),
+    );
   }
 
   /**
    * Called when page has entered view
    */
   async didEnter(event: NavigationEvent): Promise<void> {
-    this._isActive = true
-    await this._lifecycle.onDidEnter?.(event)
-    this.dispatchEvent(new CustomEvent('cap-did-enter', {
-      bubbles: true,
-      detail: event,
-    }))
+    this._isActive = true;
+    await this._lifecycle.onDidEnter?.(event);
+    this.dispatchEvent(
+      new CustomEvent('cap-did-enter', {
+        bubbles: true,
+        detail: event,
+      }),
+    );
   }
 
   /**
    * Called when page will leave view
    */
   async willLeave(event: NavigationEvent): Promise<void> {
-    await this._lifecycle.onWillLeave?.(event)
-    this.dispatchEvent(new CustomEvent('cap-will-leave', {
-      bubbles: true,
-      detail: event,
-    }))
+    await this._lifecycle.onWillLeave?.(event);
+    this.dispatchEvent(
+      new CustomEvent('cap-will-leave', {
+        bubbles: true,
+        detail: event,
+      }),
+    );
   }
 
   /**
    * Called when page has left view
    */
   async didLeave(event: NavigationEvent): Promise<void> {
-    this._isActive = false
-    await this._lifecycle.onDidLeave?.(event)
-    this.dispatchEvent(new CustomEvent('cap-did-leave', {
-      bubbles: true,
-      detail: event,
-    }))
+    this._isActive = false;
+    await this._lifecycle.onDidLeave?.(event);
+    this.dispatchEvent(
+      new CustomEvent('cap-did-leave', {
+        bubbles: true,
+        detail: event,
+      }),
+    );
   }
 
   /**
    * Get the header element
    */
   get headerElement(): HTMLElement | null {
-    return this.querySelector('[slot="header"], [data-cap-header]')
+    return this.querySelector('[slot="header"], [data-cap-header]');
   }
 
   /**
    * Get the content element
    */
   get contentElement(): HTMLElement | null {
-    return this.querySelector('[slot="content"], [data-cap-content]')
+    return this.querySelector('[slot="content"], [data-cap-content]');
   }
 
   /**
    * Get the footer element
    */
   get footerElement(): HTMLElement | null {
-    return this.querySelector('[slot="footer"], [data-cap-footer]')
+    return this.querySelector('[slot="footer"], [data-cap-footer]');
   }
 
   /**
    * Save scroll position
    */
   saveScrollPosition(): { x: number; y: number } | null {
-    const content = this.contentElement
-    if (!content) return null
+    const content = this.contentElement;
+    if (!content) return null;
 
     return {
       x: content.scrollLeft,
       y: content.scrollTop,
-    }
+    };
   }
 
   /**
    * Restore scroll position
    */
   restoreScrollPosition(position: { x: number; y: number }): void {
-    const content = this.contentElement
-    if (!content) return
+    const content = this.contentElement;
+    if (!content) return;
 
-    content.scrollLeft = position.x
-    content.scrollTop = position.y
+    content.scrollLeft = position.x;
+    content.scrollTop = position.y;
   }
 }
 
 // Register the custom element
 if (typeof customElements !== 'undefined' && !customElements.get('cap-page')) {
-  customElements.define('cap-page', CapPage)
+  customElements.define('cap-page', CapPage);
 }

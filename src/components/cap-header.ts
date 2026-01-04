@@ -9,42 +9,42 @@
  * Usage: <cap-header>Your header content</cap-header>
  */
 export class CapHeader extends HTMLElement {
-  static get observedAttributes() {
-    return ['translucent', 'collapse']
+  static get observedAttributes(): string[] {
+    return ['translucent', 'collapse'];
   }
 
   constructor() {
-    super()
+    super();
 
     // Mark for transition controller
-    this.setAttribute('data-cap-header', '')
+    this.setAttribute('data-cap-header', '');
 
     // Set up minimal required styles
-    this.style.display = 'block'
-    this.style.position = 'relative'
-    this.style.zIndex = '10'
+    this.style.display = 'block';
+    this.style.position = 'relative';
+    this.style.zIndex = '10';
 
     // For view transitions API
-    this.style.viewTransitionName = 'cap-header'
+    this.style.viewTransitionName = 'cap-header';
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     // Ensure slot assignment if inside cap-page
     if (this.parentElement?.tagName === 'CAP-PAGE' && !this.hasAttribute('slot')) {
-      this.setAttribute('slot', 'header')
+      this.setAttribute('slot', 'header');
     }
   }
 
-  attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, newValue: string): void {
     switch (name) {
       case 'translucent':
         // Mark for framework-specific handling
-        this.dataset.translucent = newValue !== null ? 'true' : 'false'
-        break
+        this.dataset.translucent = newValue !== null ? 'true' : 'false';
+        break;
       case 'collapse':
         // Mark for collapsible header behavior
-        this.dataset.collapse = newValue
-        break
+        this.dataset.collapse = newValue;
+        break;
     }
   }
 
@@ -52,11 +52,11 @@ export class CapHeader extends HTMLElement {
    * Get the current height of the header
    */
   get height(): number {
-    return this.offsetHeight
+    return this.offsetHeight;
   }
 }
 
 // Register the custom element
 if (typeof customElements !== 'undefined' && !customElements.get('cap-header')) {
-  customElements.define('cap-header', CapHeader)
+  customElements.define('cap-header', CapHeader);
 }

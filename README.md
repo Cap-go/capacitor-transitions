@@ -40,39 +40,34 @@ npm install @capgo/transitions
 ```
 
 ```javascript
-import '@capgo/transitions'
+import '@capgo/transitions';
 
 // Navigate programmatically
-const outlet = document.querySelector('cap-router-outlet')
-outlet.push(newPageElement)
-outlet.pop()
-outlet.setRoot(newRootElement)
+const outlet = document.querySelector('cap-router-outlet');
+outlet.push(newPageElement);
+outlet.pop();
+outlet.setRoot(newRootElement);
 ```
 
 ### React
 
 ```tsx
-import { useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  initTransitions,
-  setDirection,
-  setupPage,
-  setupRouterOutlet,
-} from '@capgo/transitions/react'
-import '@capgo/transitions'
+import { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/react';
+import '@capgo/transitions';
 
 // Initialize once at app startup
-initTransitions({ platform: 'auto' })
+initTransitions({ platform: 'auto' });
 
 function App() {
-  const outletRef = useRef<HTMLElement>(null)
+  const outletRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (outletRef.current) {
-      setupRouterOutlet(outletRef.current, { platform: 'auto' })
+      setupRouterOutlet(outletRef.current, { platform: 'auto' });
     }
-  }, [])
+  }, []);
 
   return (
     <cap-router-outlet ref={outletRef}>
@@ -81,25 +76,25 @@ function App() {
         <Route path="/details/:id" element={<DetailsPage />} />
       </Routes>
     </cap-router-outlet>
-  )
+  );
 }
 
 function HomePage() {
-  const navigate = useNavigate()
-  const pageRef = useRef<HTMLElement>(null)
+  const navigate = useNavigate();
+  const pageRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (pageRef.current) {
       return setupPage(pageRef.current, {
         onDidEnter: () => console.log('entered'),
-      })
+      });
     }
-  }, [])
+  }, []);
 
   const goToDetails = (id: number) => {
-    setDirection('forward')
-    navigate(`/details/${id}`)
-  }
+    setDirection('forward');
+    navigate(`/details/${id}`);
+  };
 
   return (
     <cap-page ref={pageRef}>
@@ -113,7 +108,7 @@ function HomePage() {
         <nav>Tab bar</nav>
       </cap-footer>
     </cap-page>
-  )
+  );
 }
 ```
 
@@ -121,41 +116,36 @@ function HomePage() {
 
 ```vue
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  initTransitions,
-  setDirection,
-  setupPage,
-  setupRouterOutlet,
-} from '@capgo/transitions/vue'
-import '@capgo/transitions'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/vue';
+import '@capgo/transitions';
 
 // Initialize once
-initTransitions({ platform: 'auto' })
+initTransitions({ platform: 'auto' });
 
-const router = useRouter()
-const outletRef = ref(null)
-const pageRef = ref(null)
-let cleanup
+const router = useRouter();
+const outletRef = ref(null);
+const pageRef = ref(null);
+let cleanup;
 
 onMounted(() => {
   if (outletRef.value) {
-    setupRouterOutlet(outletRef.value, { platform: 'auto' })
+    setupRouterOutlet(outletRef.value, { platform: 'auto' });
   }
   if (pageRef.value) {
     cleanup = setupPage(pageRef.value, {
       onDidEnter: () => console.log('entered'),
-    })
+    });
   }
-})
+});
 
-onUnmounted(() => cleanup?.())
+onUnmounted(() => cleanup?.());
 
 const goToDetails = (id) => {
-  setDirection('forward')
-  router.push(`/details/${id}`)
-}
+  setDirection('forward');
+  router.push(`/details/${id}`);
+};
 </script>
 
 <template>
@@ -200,36 +190,31 @@ const goToDetails = (id) => {
 ### Solid
 
 ```tsx
-import { onMount, onCleanup } from 'solid-js'
-import { useNavigate } from '@solidjs/router'
-import {
-  initTransitions,
-  setDirection,
-  setupPage,
-  setupRouterOutlet,
-} from '@capgo/transitions/solid'
-import '@capgo/transitions'
+import { onMount, onCleanup } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/solid';
+import '@capgo/transitions';
 
 // Initialize once
-initTransitions({ platform: 'auto' })
+initTransitions({ platform: 'auto' });
 
 function HomePage() {
-  const navigate = useNavigate()
-  let pageRef
+  const navigate = useNavigate();
+  let pageRef;
 
   onMount(() => {
     if (pageRef) {
       const cleanup = setupPage(pageRef, {
         onDidEnter: () => console.log('entered'),
-      })
-      onCleanup(cleanup)
+      });
+      onCleanup(cleanup);
     }
-  })
+  });
 
   const goToDetails = (id) => {
-    setDirection('forward')
-    navigate(`/details/${id}`)
-  }
+    setDirection('forward');
+    navigate(`/details/${id}`);
+  };
 
   return (
     <cap-page ref={pageRef}>
@@ -240,7 +225,7 @@ function HomePage() {
         <button onClick={() => goToDetails(1)}>Go to Details</button>
       </cap-content>
     </cap-page>
-  )
+  );
 }
 ```
 
@@ -248,8 +233,8 @@ function HomePage() {
 
 ```typescript
 // app.component.ts
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, AfterViewInit } from '@angular/core'
-import '@capgo/transitions'
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import '@capgo/transitions';
 
 @Component({
   selector: 'app-root',
@@ -281,7 +266,7 @@ export class HomeComponent {
   constructor(private router: Router) {}
 
   goToDetails(id: number) {
-    this.router.navigate(['/details', id])
+    this.router.navigate(['/details', id]);
   }
 }
 ```
@@ -294,14 +279,15 @@ export class HomeComponent {
 
 Container for page transitions.
 
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `platform` | `'ios' \| 'android' \| 'auto'` | `'auto'` | Animation style |
-| `duration` | `number` | Platform default | Animation duration in ms |
-| `keep-in-dom` | `boolean` | `true` | Keep pages in DOM after navigating away |
-| `max-cached` | `number` | `10` | Maximum pages to keep cached |
+| Attribute     | Type                           | Default          | Description                             |
+| ------------- | ------------------------------ | ---------------- | --------------------------------------- |
+| `platform`    | `'ios' \| 'android' \| 'auto'` | `'auto'`         | Animation style                         |
+| `duration`    | `number`                       | Platform default | Animation duration in ms                |
+| `keep-in-dom` | `boolean`                      | `true`           | Keep pages in DOM after navigating away |
+| `max-cached`  | `number`                       | `10`             | Maximum pages to keep cached            |
 
 Methods:
+
 - `push(element, config?)` - Navigate forward to new page
 - `pop(config?)` - Navigate back
 - `setRoot(element, config?)` - Replace navigation stack
@@ -311,6 +297,7 @@ Methods:
 Page container with header/content/footer slots.
 
 Events:
+
 - `cap-will-enter` - Before page becomes visible
 - `cap-did-enter` - After page becomes visible
 - `cap-will-leave` - Before page leaves
@@ -324,11 +311,11 @@ Header container. Use with `slot="header"` inside `<cap-page>`.
 
 Main scrollable content area. Use with `slot="content"`.
 
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
+| Attribute    | Type      | Default | Description                   |
+| ------------ | --------- | ------- | ----------------------------- |
 | `fullscreen` | `boolean` | `false` | Content scrolls behind header |
-| `scroll-x` | `boolean` | `true` | Enable horizontal scroll |
-| `scroll-y` | `boolean` | `true` | Enable vertical scroll |
+| `scroll-x`   | `boolean` | `true`  | Enable horizontal scroll      |
+| `scroll-y`   | `boolean` | `true`  | Enable vertical scroll        |
 
 #### `<cap-footer>`
 
@@ -336,12 +323,12 @@ Footer container. Use with `slot="footer"`.
 
 ### Transition Directions
 
-| Direction | Description |
-|-----------|-------------|
+| Direction   | Description                            |
+| ----------- | -------------------------------------- |
 | `'forward'` | Push animation (iOS: slide from right) |
-| `'back'` | Pop animation (iOS: slide to right) |
-| `'root'` | Replace animation (fade) |
-| `'none'` | No animation |
+| `'back'`    | Pop animation (iOS: slide to right)    |
+| `'root'`    | Replace animation (fade)               |
+| `'none'`    | No animation                           |
 
 ### Helper Functions
 
@@ -349,20 +336,20 @@ All framework bindings export these helper functions:
 
 ```typescript
 // Initialize the transition system
-initTransitions({ platform: 'auto' })
+initTransitions({ platform: 'auto' });
 
 // Set the direction for the next navigation
-setDirection('forward' | 'back' | 'root' | 'none')
+setDirection('forward' | 'back' | 'root' | 'none');
 
 // Set up a router outlet element
-setupRouterOutlet(element, options)
+setupRouterOutlet(element, options);
 
 // Set up a page element with lifecycle callbacks (returns cleanup function)
-setupPage(element, { onWillEnter, onDidEnter, onWillLeave, onDidLeave })
+setupPage(element, { onWillEnter, onDidEnter, onWillLeave, onDidLeave });
 
 // Create a transition-aware navigate function
-const transitionNavigate = createTransitionNavigate(navigate)
-transitionNavigate('/path', 'forward')
+const transitionNavigate = createTransitionNavigate(navigate);
+transitionNavigate('/path', 'forward');
 ```
 
 ### TransitionController
@@ -370,18 +357,18 @@ transitionNavigate('/path', 'forward')
 For advanced programmatic control:
 
 ```typescript
-import { createTransitionController } from '@capgo/transitions'
+import { createTransitionController } from '@capgo/transitions';
 
 const controller = createTransitionController({
   platform: 'auto',
   duration: 400,
   useViewTransitions: true,
-})
+});
 
 // Navigate
-await controller.push(element, { direction: 'forward' })
-await controller.pop({ direction: 'back' })
-await controller.setRoot(element, { direction: 'root' })
+await controller.push(element, { direction: 'forward' });
+await controller.pop({ direction: 'back' });
+await controller.setRoot(element, { direction: 'root' });
 
 // Lifecycle hooks
 controller.registerLifecycle('page-id', {
@@ -389,7 +376,7 @@ controller.registerLifecycle('page-id', {
   onDidEnter: (event) => console.log('Did enter', event),
   onWillLeave: (event) => console.log('Will leave', event),
   onDidLeave: (event) => console.log('Did leave', event),
-})
+});
 ```
 
 ## Browser Support

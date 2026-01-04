@@ -3,24 +3,19 @@
  * Provides iOS and Android style page transitions
  */
 
-import type {
-  TransitionAnimationOptions,
-  TransitionDirection,
-  TransitionEasing,
-  TransitionPlatform,
-} from './types'
+import type { TransitionAnimationOptions, TransitionEasing, TransitionPlatform, ResolvedPlatform } from './types';
 
 /** iOS easing curve - matches UIKit spring animation feel */
-export const IOS_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)'
+export const IOS_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
 /** Android Material Design easing */
-export const ANDROID_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
+export const ANDROID_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
 /** Default iOS transition duration */
-export const IOS_DURATION = 540
+export const IOS_DURATION = 540;
 
 /** Default Android transition duration */
-export const ANDROID_DURATION = 300
+export const ANDROID_DURATION = 300;
 
 /**
  * Resolve easing string to CSS value
@@ -28,53 +23,53 @@ export const ANDROID_DURATION = 300
 export function resolveEasing(easing: TransitionEasing): string {
   switch (easing) {
     case 'ios':
-      return IOS_EASING
+      return IOS_EASING;
     case 'android':
-      return ANDROID_EASING
+      return ANDROID_EASING;
     case 'linear':
-      return 'linear'
+      return 'linear';
     case 'ease':
-      return 'ease'
+      return 'ease';
     case 'ease-in':
-      return 'ease-in'
+      return 'ease-in';
     case 'ease-out':
-      return 'ease-out'
+      return 'ease-out';
     case 'ease-in-out':
-      return 'ease-in-out'
+      return 'ease-in-out';
     default:
-      return easing // Custom cubic-bezier
+      return easing; // Custom cubic-bezier
   }
 }
 
 /**
  * Detect platform from user agent
  */
-export function detectPlatform(): TransitionPlatform {
-  if (typeof navigator === 'undefined') return 'ios'
+export function detectPlatform(): ResolvedPlatform {
+  if (typeof navigator === 'undefined') return 'ios';
 
-  const ua = navigator.userAgent.toLowerCase()
+  const ua = navigator.userAgent.toLowerCase();
 
-  if (/iphone|ipad|ipod/.test(ua)) return 'ios'
-  if (/android/.test(ua)) return 'android'
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+  if (/android/.test(ua)) return 'android';
 
   // Default to iOS for web/desktop - it's the more polished animation
-  return 'ios'
+  return 'ios';
 }
 
 /**
  * Get default duration for platform
  */
 export function getDefaultDuration(platform: TransitionPlatform): number {
-  const resolved = platform === 'auto' ? detectPlatform() : platform
-  return resolved === 'ios' ? IOS_DURATION : ANDROID_DURATION
+  const resolved = platform === 'auto' ? detectPlatform() : platform;
+  return resolved === 'ios' ? IOS_DURATION : ANDROID_DURATION;
 }
 
 /**
  * Get default easing for platform
  */
 export function getDefaultEasing(platform: TransitionPlatform): string {
-  const resolved = platform === 'auto' ? detectPlatform() : platform
-  return resolved === 'ios' ? IOS_EASING : ANDROID_EASING
+  const resolved = platform === 'auto' ? detectPlatform() : platform;
+  return resolved === 'ios' ? IOS_EASING : ANDROID_EASING;
 }
 
 /**
@@ -83,33 +78,27 @@ export function getDefaultEasing(platform: TransitionPlatform): string {
  * Back: old page slides out to right
  */
 export function createIOSTransition(options: TransitionAnimationOptions): Animation[] {
-  const { enteringEl, leavingEl, direction, duration, easing } = options
-  const animations: Animation[] = []
+  const { enteringEl, leavingEl, direction, duration, easing } = options;
+  const animations: Animation[] = [];
 
-  const isBack = direction === 'back'
-  const isRoot = direction === 'root'
+  const isBack = direction === 'back';
+  const isRoot = direction === 'root';
 
   // Ensure elements are positioned for animation
-  enteringEl.style.position = 'absolute'
-  enteringEl.style.top = '0'
-  enteringEl.style.left = '0'
-  enteringEl.style.width = '100%'
-  enteringEl.style.height = '100%'
+  enteringEl.style.position = 'absolute';
+  enteringEl.style.top = '0';
+  enteringEl.style.left = '0';
+  enteringEl.style.width = '100%';
+  enteringEl.style.height = '100%';
 
   if (isRoot) {
     // Root transition - fade in new page, no animation on old
-    const enterAnimation = enteringEl.animate(
-      [
-        { opacity: 0 },
-        { opacity: 1 },
-      ],
-      {
-        duration,
-        easing,
-        fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+    const enterAnimation = enteringEl.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration,
+      easing,
+      fill: 'forwards',
+    });
+    animations.push(enterAnimation);
   } else if (isBack) {
     // Back navigation - entering page comes from left, leaving slides out to right
     const enterAnimation = enteringEl.animate(
@@ -121,16 +110,16 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
         duration,
         easing,
         fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+      },
+    );
+    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute'
-      leavingEl.style.top = '0'
-      leavingEl.style.left = '0'
-      leavingEl.style.width = '100%'
-      leavingEl.style.height = '100%'
+      leavingEl.style.position = 'absolute';
+      leavingEl.style.top = '0';
+      leavingEl.style.left = '0';
+      leavingEl.style.width = '100%';
+      leavingEl.style.height = '100%';
 
       const leaveAnimation = leavingEl.animate(
         [
@@ -141,9 +130,9 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
           duration,
           easing,
           fill: 'forwards',
-        }
-      )
-      animations.push(leaveAnimation)
+        },
+      );
+      animations.push(leaveAnimation);
     }
   } else {
     // Forward navigation - entering page comes from right, leaving slides out to left
@@ -156,16 +145,16 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
         duration,
         easing,
         fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+      },
+    );
+    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute'
-      leavingEl.style.top = '0'
-      leavingEl.style.left = '0'
-      leavingEl.style.width = '100%'
-      leavingEl.style.height = '100%'
+      leavingEl.style.position = 'absolute';
+      leavingEl.style.top = '0';
+      leavingEl.style.left = '0';
+      leavingEl.style.width = '100%';
+      leavingEl.style.height = '100%';
 
       const leaveAnimation = leavingEl.animate(
         [
@@ -176,13 +165,13 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
           duration,
           easing,
           fill: 'forwards',
-        }
-      )
-      animations.push(leaveAnimation)
+        },
+      );
+      animations.push(leaveAnimation);
     }
   }
 
-  return animations
+  return animations;
 }
 
 /**
@@ -191,18 +180,18 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
  * Back: old page slides down to bottom
  */
 export function createAndroidTransition(options: TransitionAnimationOptions): Animation[] {
-  const { enteringEl, leavingEl, direction, duration, easing } = options
-  const animations: Animation[] = []
+  const { enteringEl, leavingEl, direction, duration, easing } = options;
+  const animations: Animation[] = [];
 
-  const isBack = direction === 'back'
-  const isRoot = direction === 'root'
+  const isBack = direction === 'back';
+  const isRoot = direction === 'root';
 
   // Ensure elements are positioned for animation
-  enteringEl.style.position = 'absolute'
-  enteringEl.style.top = '0'
-  enteringEl.style.left = '0'
-  enteringEl.style.width = '100%'
-  enteringEl.style.height = '100%'
+  enteringEl.style.position = 'absolute';
+  enteringEl.style.top = '0';
+  enteringEl.style.left = '0';
+  enteringEl.style.width = '100%';
+  enteringEl.style.height = '100%';
 
   if (isRoot) {
     // Root transition - fade in
@@ -215,9 +204,9 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
         duration,
         easing,
         fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+      },
+    );
+    animations.push(enterAnimation);
   } else if (isBack) {
     // Back - entering fades in, leaving slides down
     const enterAnimation = enteringEl.animate(
@@ -229,16 +218,16 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
         duration,
         easing,
         fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+      },
+    );
+    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute'
-      leavingEl.style.top = '0'
-      leavingEl.style.left = '0'
-      leavingEl.style.width = '100%'
-      leavingEl.style.height = '100%'
+      leavingEl.style.position = 'absolute';
+      leavingEl.style.top = '0';
+      leavingEl.style.left = '0';
+      leavingEl.style.width = '100%';
+      leavingEl.style.height = '100%';
 
       const leaveAnimation = leavingEl.animate(
         [
@@ -249,9 +238,9 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
           duration,
           easing,
           fill: 'forwards',
-        }
-      )
-      animations.push(leaveAnimation)
+        },
+      );
+      animations.push(leaveAnimation);
     }
   } else {
     // Forward - entering slides up, leaving fades/scales down
@@ -264,16 +253,16 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
         duration,
         easing,
         fill: 'forwards',
-      }
-    )
-    animations.push(enterAnimation)
+      },
+    );
+    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute'
-      leavingEl.style.top = '0'
-      leavingEl.style.left = '0'
-      leavingEl.style.width = '100%'
-      leavingEl.style.height = '100%'
+      leavingEl.style.position = 'absolute';
+      leavingEl.style.top = '0';
+      leavingEl.style.left = '0';
+      leavingEl.style.width = '100%';
+      leavingEl.style.height = '100%';
 
       const leaveAnimation = leavingEl.animate(
         [
@@ -284,30 +273,30 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
           duration,
           easing,
           fill: 'forwards',
-        }
-      )
-      animations.push(leaveAnimation)
+        },
+      );
+      animations.push(leaveAnimation);
     }
   }
 
-  return animations
+  return animations;
 }
 
 /**
  * No animation - instant transition
  */
 export function createNoneTransition(options: TransitionAnimationOptions): Animation[] {
-  const { enteringEl, leavingEl } = options
+  const { enteringEl, leavingEl } = options;
 
-  enteringEl.style.opacity = '1'
-  enteringEl.style.transform = 'none'
+  enteringEl.style.opacity = '1';
+  enteringEl.style.transform = 'none';
 
   if (leavingEl) {
-    leavingEl.style.opacity = '0'
-    leavingEl.style.transform = 'none'
+    leavingEl.style.opacity = '0';
+    leavingEl.style.transform = 'none';
   }
 
-  return []
+  return [];
 }
 
 /**
@@ -315,43 +304,43 @@ export function createNoneTransition(options: TransitionAnimationOptions): Anima
  */
 export function createTransition(
   options: TransitionAnimationOptions,
-  platform: TransitionPlatform = 'auto'
+  platform: TransitionPlatform = 'auto',
 ): Animation[] {
   if (options.direction === 'none') {
-    return createNoneTransition(options)
+    return createNoneTransition(options);
   }
 
-  const resolved = platform === 'auto' ? detectPlatform() : platform
+  const resolved = platform === 'auto' ? detectPlatform() : platform;
 
   if (resolved === 'android') {
-    return createAndroidTransition(options)
+    return createAndroidTransition(options);
   }
 
-  return createIOSTransition(options)
+  return createIOSTransition(options);
 }
 
 /**
  * Wait for all animations to complete
  */
 export async function waitForAnimations(animations: Animation[]): Promise<void> {
-  if (animations.length === 0) return
+  if (animations.length === 0) return;
 
   await Promise.all(
     animations.map(
       (anim) =>
         new Promise<void>((resolve) => {
-          anim.onfinish = () => resolve()
-          anim.oncancel = () => resolve()
-        })
-    )
-  )
+          anim.onfinish = () => resolve();
+          anim.oncancel = () => resolve();
+        }),
+    ),
+  );
 }
 
 /**
  * Cancel all animations
  */
 export function cancelAnimations(animations: Animation[]): void {
-  animations.forEach((anim) => anim.cancel())
+  animations.forEach((anim) => anim.cancel());
 }
 
 /**
@@ -360,14 +349,14 @@ export function cancelAnimations(animations: Animation[]): void {
  */
 export function createHeaderTransition(
   options: TransitionAnimationOptions & {
-    enteringHeader?: HTMLElement
-    leavingHeader?: HTMLElement
-  }
+    enteringHeader?: HTMLElement;
+    leavingHeader?: HTMLElement;
+  },
 ): Animation[] {
-  const { enteringHeader, leavingHeader, direction, duration, easing } = options
-  const animations: Animation[] = []
+  const { enteringHeader, leavingHeader, direction, duration, easing } = options;
+  const animations: Animation[] = [];
 
-  const isBack = direction === 'back'
+  const isBack = direction === 'back';
 
   if (enteringHeader) {
     if (isBack) {
@@ -377,9 +366,9 @@ export function createHeaderTransition(
           { opacity: 0, transform: 'translateX(-20px)' },
           { opacity: 1, transform: 'translateX(0)' },
         ],
-        { duration: duration * 0.7, easing, fill: 'forwards' }
-      )
-      animations.push(enterAnim)
+        { duration: duration * 0.7, easing, fill: 'forwards' },
+      );
+      animations.push(enterAnim);
     } else {
       // Header fades in from right
       const enterAnim = enteringHeader.animate(
@@ -387,9 +376,9 @@ export function createHeaderTransition(
           { opacity: 0, transform: 'translateX(20px)' },
           { opacity: 1, transform: 'translateX(0)' },
         ],
-        { duration: duration * 0.7, easing, fill: 'forwards' }
-      )
-      animations.push(enterAnim)
+        { duration: duration * 0.7, easing, fill: 'forwards' },
+      );
+      animations.push(enterAnim);
     }
   }
 
@@ -401,9 +390,9 @@ export function createHeaderTransition(
           { opacity: 1, transform: 'translateX(0)' },
           { opacity: 0, transform: 'translateX(20px)' },
         ],
-        { duration: duration * 0.7, easing, fill: 'forwards' }
-      )
-      animations.push(leaveAnim)
+        { duration: duration * 0.7, easing, fill: 'forwards' },
+      );
+      animations.push(leaveAnim);
     } else {
       // Header fades out to left
       const leaveAnim = leavingHeader.animate(
@@ -411,13 +400,13 @@ export function createHeaderTransition(
           { opacity: 1, transform: 'translateX(0)' },
           { opacity: 0, transform: 'translateX(-20px)' },
         ],
-        { duration: duration * 0.7, easing, fill: 'forwards' }
-      )
-      animations.push(leaveAnim)
+        { duration: duration * 0.7, easing, fill: 'forwards' },
+      );
+      animations.push(leaveAnim);
     }
   }
 
-  return animations
+  return animations;
 }
 
 /**
@@ -426,27 +415,29 @@ export function createHeaderTransition(
  */
 export function createFooterTransition(
   options: TransitionAnimationOptions & {
-    enteringFooter?: HTMLElement
-    leavingFooter?: HTMLElement
-  }
+    enteringFooter?: HTMLElement;
+    leavingFooter?: HTMLElement;
+  },
 ): Animation[] {
-  const { enteringFooter, leavingFooter, duration, easing } = options
-  const animations: Animation[] = []
+  const { enteringFooter, leavingFooter, duration, easing } = options;
+  const animations: Animation[] = [];
 
   // Footers typically just fade in/out if they change
   if (enteringFooter && leavingFooter && enteringFooter !== leavingFooter) {
-    const enterAnim = enteringFooter.animate(
-      [{ opacity: 0 }, { opacity: 1 }],
-      { duration: duration * 0.5, easing, fill: 'forwards' }
-    )
-    animations.push(enterAnim)
+    const enterAnim = enteringFooter.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: duration * 0.5,
+      easing,
+      fill: 'forwards',
+    });
+    animations.push(enterAnim);
 
-    const leaveAnim = leavingFooter.animate(
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: duration * 0.5, easing, fill: 'forwards' }
-    )
-    animations.push(leaveAnim)
+    const leaveAnim = leavingFooter.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: duration * 0.5,
+      easing,
+      fill: 'forwards',
+    });
+    animations.push(leaveAnim);
   }
 
-  return animations
+  return animations;
 }

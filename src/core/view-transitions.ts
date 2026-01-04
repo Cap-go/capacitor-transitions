@@ -3,30 +3,27 @@
  * Progressive enhancement for browsers that support it
  */
 
-import type { TransitionDirection } from './types'
+import type { TransitionDirection } from './types';
 
 /** Check if View Transitions API is supported */
 export function supportsViewTransitions(): boolean {
-  return (
-    typeof document !== 'undefined' &&
-    'startViewTransition' in document
-  )
+  return typeof document !== 'undefined' && 'startViewTransition' in document;
 }
 
 /** View transition options */
 export interface ViewTransitionOptions {
   /** Callback to update the DOM */
-  update: () => void | Promise<void>
+  update: () => void | Promise<void>;
   /** Direction for animation classes */
-  direction?: TransitionDirection
+  direction?: TransitionDirection;
   /** Custom view transition names to apply */
   names?: {
-    header?: string
-    content?: string
-    footer?: string
-  }
+    header?: string;
+    content?: string;
+    footer?: string;
+  };
   /** Skip animation */
-  skipAnimation?: boolean
+  skipAnimation?: boolean;
 }
 
 /**
@@ -34,25 +31,27 @@ export interface ViewTransitionOptions {
  * Falls back to immediate update if not supported
  */
 export async function runViewTransition(options: ViewTransitionOptions): Promise<void> {
-  const { update, direction = 'forward', skipAnimation = false } = options
+  const { update, direction = 'forward', skipAnimation = false } = options;
 
   if (skipAnimation || !supportsViewTransitions()) {
-    await update()
-    return
+    await update();
+    return;
   }
 
   // Add direction class for CSS targeting
-  const root = document.documentElement
-  root.dataset.transitionDirection = direction
+  const root = document.documentElement;
+  root.dataset.transitionDirection = direction;
 
   try {
-    const transition = (document as Document & { startViewTransition: (cb: () => Promise<void>) => { finished: Promise<void> } }).startViewTransition(async () => {
-      await update()
-    })
+    const transition = (
+      document as Document & { startViewTransition: (cb: () => Promise<void>) => { finished: Promise<void> } }
+    ).startViewTransition(async () => {
+      await update();
+    });
 
-    await transition.finished
+    await transition.finished;
   } finally {
-    delete root.dataset.transitionDirection
+    delete root.dataset.transitionDirection;
   }
 }
 
@@ -60,14 +59,14 @@ export async function runViewTransition(options: ViewTransitionOptions): Promise
  * Apply view transition name to an element
  */
 export function setViewTransitionName(element: HTMLElement, name: string): void {
-  element.style.viewTransitionName = name
+  element.style.viewTransitionName = name;
 }
 
 /**
  * Remove view transition name from an element
  */
 export function clearViewTransitionName(element: HTMLElement): void {
-  element.style.viewTransitionName = ''
+  element.style.viewTransitionName = '';
 }
 
 /**
@@ -264,19 +263,19 @@ export const VIEW_TRANSITIONS_CSS = `
     animation-duration: 0.01ms !important;
   }
 }
-`
+`;
 
 /**
  * Inject View Transitions CSS into the page
  */
 export function injectViewTransitionsCSS(): void {
-  if (typeof document === 'undefined') return
+  if (typeof document === 'undefined') return;
 
-  const styleId = 'cap-view-transitions-css'
-  if (document.getElementById(styleId)) return
+  const styleId = 'cap-view-transitions-css';
+  if (document.getElementById(styleId)) return;
 
-  const style = document.createElement('style')
-  style.id = styleId
-  style.textContent = VIEW_TRANSITIONS_CSS
-  document.head.appendChild(style)
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = VIEW_TRANSITIONS_CSS;
+  document.head.appendChild(style);
 }

@@ -1,0 +1,164 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { setupRouterOutlet } from '@capgo/transitions/vue'
+
+const outletRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  if (outletRef.value) {
+    setupRouterOutlet(outletRef.value, { platform: 'auto' })
+  }
+})
+</script>
+
+<template>
+  <cap-router-outlet ref="outletRef">
+    <NuxtPage />
+  </cap-router-outlet>
+</template>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.toolbar h1 {
+  font-size: 17px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 17px;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: -8px;
+}
+
+.page-content {
+  padding: 20px;
+}
+
+.page-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.page-content p {
+  color: #6e6e73;
+  margin-bottom: 20px;
+}
+
+.list {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 17px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: #f5f5f7;
+}
+
+.chevron {
+  color: #c7c7cc;
+  font-size: 20px;
+}
+
+.primary-button {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.primary-button:active {
+  opacity: 0.8;
+}
+
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #8e8e93;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #007aff;
+}
+
+.scroll-demo {
+  margin-top: 20px;
+}
+
+.scroll-demo h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.scroll-demo p {
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+</style>

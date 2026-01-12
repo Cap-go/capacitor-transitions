@@ -1,6 +1,6 @@
 {
   "name": "@capgo/transitions",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Framework-agnostic page transitions for Capacitor apps - iOS-style navigation without opinions",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

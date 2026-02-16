@@ -16,7 +16,6 @@ import {
 import type {
   TransitionConfig,
   TransitionGlobalConfig,
-  TransitionDirection,
   TransitionResult,
   PageState,
   NavigationEvent,

@@ -16,9 +16,6 @@ export class CapFooter extends HTMLElement {
   constructor() {
     super();
 
-    // Mark for transition controller
-    this.setAttribute('data-cap-footer', '');
-
     // Set up minimal required styles
     this.style.display = 'block';
     this.style.position = 'relative';
@@ -29,6 +26,9 @@ export class CapFooter extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // Mark for transition controller
+    this.setAttribute('data-cap-footer', '');
+
     // Ensure slot assignment if inside cap-page
     if (this.parentElement?.tagName === 'CAP-PAGE' && !this.hasAttribute('slot')) {
       this.setAttribute('slot', 'footer');

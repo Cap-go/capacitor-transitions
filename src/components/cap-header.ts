@@ -16,9 +16,6 @@ export class CapHeader extends HTMLElement {
   constructor() {
     super();
 
-    // Mark for transition controller
-    this.setAttribute('data-cap-header', '');
-
     // Set up minimal required styles
     this.style.display = 'block';
     this.style.position = 'relative';
@@ -29,6 +26,9 @@ export class CapHeader extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // Mark for transition controller
+    this.setAttribute('data-cap-header', '');
+
     // Ensure slot assignment if inside cap-page
     if (this.parentElement?.tagName === 'CAP-PAGE' && !this.hasAttribute('slot')) {
       this.setAttribute('slot', 'header');

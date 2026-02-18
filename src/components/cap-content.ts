@@ -18,9 +18,6 @@ export class CapContent extends HTMLElement {
   constructor() {
     super();
 
-    // Mark for transition controller
-    this.setAttribute('data-cap-content', '');
-
     // Set up minimal required styles
     this.style.display = 'block';
     this.style.position = 'relative';
@@ -37,6 +34,9 @@ export class CapContent extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // Mark for transition controller
+    this.setAttribute('data-cap-content', '');
+
     // Ensure slot assignment if inside cap-page
     if (this.parentElement?.tagName === 'CAP-PAGE' && !this.hasAttribute('slot')) {
       this.setAttribute('slot', 'content');

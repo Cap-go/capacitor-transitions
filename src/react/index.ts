@@ -159,11 +159,42 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      'cap-router-outlet': Record<string, unknown>;
-      'cap-page': Record<string, unknown>;
-      'cap-header': Record<string, unknown>;
-      'cap-content': Record<string, unknown>;
-      'cap-footer': Record<string, unknown>;
+      'cap-router-outlet': {
+        platform?: 'ios' | 'android' | 'auto';
+        duration?: number;
+        'keep-in-dom'?: boolean;
+        'max-cached'?: number;
+        ref?: unknown;
+        children?: unknown;
+      };
+      'cap-page': {
+        key?: string;
+        'cache-scroll'?: boolean;
+        'data-direction'?: 'forward' | 'back' | 'root' | 'none';
+        ref?: unknown;
+        children?: unknown;
+      };
+      'cap-header': {
+        translucent?: boolean;
+        collapse?: string;
+        slot?: string;
+        ref?: unknown;
+        children?: unknown;
+      };
+      'cap-content': {
+        fullscreen?: boolean;
+        'scroll-x'?: boolean;
+        'scroll-y'?: boolean;
+        slot?: string;
+        ref?: unknown;
+        children?: unknown;
+      };
+      'cap-footer': {
+        translucent?: boolean;
+        slot?: string;
+        ref?: unknown;
+        children?: unknown;
+      };
     }
   }
 }

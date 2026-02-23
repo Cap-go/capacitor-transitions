@@ -15,7 +15,9 @@ export class CapHeader extends HTMLElement {
 
   constructor() {
     super();
+  }
 
+  connectedCallback(): void {
     // Set up minimal required styles
     this.style.display = 'block';
     this.style.position = 'relative';
@@ -23,9 +25,7 @@ export class CapHeader extends HTMLElement {
 
     // For view transitions API
     this.style.viewTransitionName = 'cap-header';
-  }
 
-  connectedCallback(): void {
     // Mark for transition controller
     this.setAttribute('data-cap-header', '');
 

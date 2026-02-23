@@ -17,7 +17,9 @@ export class CapContent extends HTMLElement {
 
   constructor() {
     super();
+  }
 
+  connectedCallback(): void {
     // Set up minimal required styles
     this.style.display = 'block';
     this.style.position = 'relative';
@@ -31,9 +33,7 @@ export class CapContent extends HTMLElement {
     // iOS-style momentum scrolling
     // @ts-expect-error vendor prefix
     this.style.webkitOverflowScrolling = 'touch';
-  }
 
-  connectedCallback(): void {
     // Mark for transition controller
     this.setAttribute('data-cap-content', '');
 

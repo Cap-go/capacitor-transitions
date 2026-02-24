@@ -38,16 +38,16 @@ export class CapRouterOutlet extends HTMLElement {
     };
 
     this.controller = createTransitionController();
+  }
 
+  connectedCallback(): void {
     // Set up styles
     this.style.display = 'block';
     this.style.position = 'relative';
     this.style.width = '100%';
     this.style.height = '100%';
     this.style.overflow = 'hidden';
-  }
 
-  connectedCallback(): void {
     // Observe child changes to detect page additions
     this.observer = new MutationObserver((mutations) => {
       this.handleMutations(mutations);

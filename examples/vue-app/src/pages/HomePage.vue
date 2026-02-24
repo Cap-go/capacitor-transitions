@@ -1,32 +1,37 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Page, Header, Content, Footer, useTransition } from '@capgo/transitions/vue'
+import { setupPage, setDirection } from '@capgo/transitions/vue'
 
 const router = useRouter()
-const { setDirection } = useTransition()
+const pageRef = ref<HTMLElement | null>(null)
+let cleanup: (() => void) | undefined
+
+onMounted(() => {
+  if (pageRef.value) {
+    cleanup = setupPage(pageRef.value, {
+      onDidEnter: () => console.log('Home entered'),
+      onDidLeave: () => console.log('Home left'),
+    })
+  }
+})
+
+onUnmounted(() => cleanup?.())
 
 const goToDetails = (id: number) => {
   setDirection('forward')
   router.push(`/details/${id}`)
 }
-
-const onDidEnter = () => {
-  console.log('Home entered')
-}
-
-const onDidLeave = () => {
-  console.log('Home left')
-}
 </script>
 
 <template>
-  <Page @did-enter="onDidEnter" @did-leave="onDidLeave">
-    <Header>
+  <cap-page ref="pageRef">
+    <cap-header slot="header">
       <div class="toolbar">
         <h1>Home</h1>
       </div>
-    </Header>
-    <Content>
+    </cap-header>
+    <cap-content slot="content">
       <div class="page-content">
         <h2>Welcome to Cap Transitions</h2>
         <p>This example shows iOS-style page transitions in Vue.</p>
@@ -43,13 +48,13 @@ const onDidLeave = () => {
           </button>
         </div>
       </div>
-    </Content>
-    <Footer>
+    </cap-content>
+    <cap-footer slot="footer">
       <div class="tab-bar">
         <button class="tab active">Home</button>
         <button class="tab">Search</button>
         <button class="tab">Profile</button>
       </div>
-    </Footer>
-  </Page>
+    </cap-footer>
+  </cap-page>
 </template>

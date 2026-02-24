@@ -43,16 +43,19 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "dev:examples": "bun scripts/dev-frameworks.ts",
+    "dev:examples:all": "bun scripts/dev-frameworks.ts --all",
+    "dev:examples:all:install": "bun scripts/dev-frameworks.ts --all --install",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run verify:web",
-    "verify:web": "npm run build",
-    "lint": "npm run eslint && npm run prettier -- --check",
-    "fmt": "npm run eslint -- --fix && npm run prettier -- --write",
+    "verify": "bun run verify:web",
+    "verify:web": "bun run build",
+    "lint": "bun run eslint && bun run prettier -- --check",
+    "fmt": "bun run eslint -- --fix && bun run prettier -- --write",
     "eslint": "eslint .",
     "prettier": "prettier-pretty-check \"**/*.{css,html,ts,js,json,md}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "capacitor",

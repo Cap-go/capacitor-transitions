@@ -14,6 +14,7 @@
     "@capgo/transitions": "file:../.."
   },
   "devDependencies": {
+    "@babel/core": "^7.27.7",
     "vite-plugin-solid": "^2.10.0",
     "typescript": "^5.7.0",
     "vite": "^7.3.1"

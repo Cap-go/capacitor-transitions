@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createTransitions } from '@capgo/transitions/vue'
+import { initTransitions } from '@capgo/transitions/vue'
+import '@capgo/transitions'
 import App from './App.vue'
 import HomePage from './pages/HomePage.vue'
 import DetailsPage from './pages/DetailsPage.vue'
@@ -17,13 +18,10 @@ const router = createRouter({
   ],
 })
 
-// Create transitions plugin
-const transitions = createTransitions({
-  platform: 'auto',
-})
+// Initialize transitions once at startup
+initTransitions({ platform: 'auto' })
 
 // Create and mount app
 const app = createApp(App)
 app.use(router)
-app.use(transitions)
 app.mount('#app')

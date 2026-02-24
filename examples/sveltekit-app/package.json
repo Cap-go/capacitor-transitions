@@ -2,13 +2,14 @@
   "name": "sveltekit-transitions-example",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capgo/transitions": "workspace:*"
+    "@capgo/transitions": "file:../.."
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",

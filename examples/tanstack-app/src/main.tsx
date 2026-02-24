@@ -1,41 +1,55 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   createRouter,
   createRoute,
   createRootRoute,
   RouterProvider,
-  Link,
   Outlet,
   useNavigate,
   useParams,
 } from '@tanstack/react-router'
-import {
-  TransitionProvider,
-  RouterOutlet,
-  Page,
-  Header,
-  Content,
-  Footer,
-  useTransition,
-} from '@capgo/transitions/react'
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/react'
+import '@capgo/transitions'
 import './styles.css'
 
+// Initialize transitions
+initTransitions({ platform: 'auto' })
+
 // Root route
+function RootComponent() {
+  const outletRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (outletRef.current) {
+      setupRouterOutlet(outletRef.current, { platform: 'auto' })
+    }
+  }, [])
+
+  return (
+    <cap-router-outlet ref={outletRef}>
+      <Outlet />
+    </cap-router-outlet>
+  )
+}
+
 const rootRoute = createRootRoute({
-  component: () => (
-    <TransitionProvider platform="auto">
-      <RouterOutlet>
-        <Outlet />
-      </RouterOutlet>
-    </TransitionProvider>
-  ),
+  component: RootComponent,
 })
 
-// Home Page Component
+// Home page
 function HomePage() {
   const navigate = useNavigate()
-  const { setDirection } = useTransition()
+  const pageRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (pageRef.current) {
+      return setupPage(pageRef.current, {
+        onDidEnter: () => console.log('Home entered'),
+        onDidLeave: () => console.log('Home left'),
+      })
+    }
+  }, [])
 
   const goToDetails = (id: number) => {
     setDirection('forward')
@@ -43,16 +57,13 @@ function HomePage() {
   }
 
   return (
-    <Page
-      onDidEnter={() => console.log('Home entered')}
-      onDidLeave={() => console.log('Home left')}
-    >
-      <Header>
+    <cap-page ref={pageRef}>
+      <cap-header slot="header">
         <div className="toolbar">
           <h1>Home</h1>
         </div>
-      </Header>
-      <Content>
+      </cap-header>
+      <cap-content slot="content">
         <div className="page-content">
           <h2>Welcome to Cap Transitions</h2>
           <p>This example shows iOS-style page transitions with TanStack Router.</p>
@@ -66,23 +77,32 @@ function HomePage() {
             ))}
           </div>
         </div>
-      </Content>
-      <Footer>
+      </cap-content>
+      <cap-footer slot="footer">
         <div className="tab-bar">
           <button className="tab active">Home</button>
           <button className="tab">Search</button>
           <button className="tab">Profile</button>
         </div>
-      </Footer>
-    </Page>
+      </cap-footer>
+    </cap-page>
   )
 }
 
-// Details Page Component
+// Details page
 function DetailsPage() {
   const navigate = useNavigate()
   const { id } = useParams({ from: '/details/$id' })
-  const { setDirection } = useTransition()
+  const pageRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (pageRef.current) {
+      return setupPage(pageRef.current, {
+        onDidEnter: () => console.log(`Details ${id} entered`),
+        onDidLeave: () => console.log(`Details ${id} left`),
+      })
+    }
+  }, [id])
 
   const goBack = () => {
     setDirection('back')
@@ -95,23 +115,20 @@ function DetailsPage() {
   }
 
   return (
-    <Page
-      onDidEnter={() => console.log(`Details ${id} entered`)}
-      onDidLeave={() => console.log(`Details ${id} left`)}
-    >
-      <Header>
+    <cap-page ref={pageRef}>
+      <cap-header slot="header">
         <div className="toolbar">
           <button className="back-button" onClick={goBack}>
             ‹ Back
           </button>
           <h1>Details {id}</h1>
         </div>
-      </Header>
-      <Content>
+      </cap-header>
+      <cap-content slot="content">
         <div className="page-content">
           <h2>Detail View</h2>
           <p>This is the details page for item {id}.</p>
-          <p>TanStack Router provides type-safe routing with Cap Transitions.</p>
+          <p>TanStack Router works with the same transition primitives.</p>
 
           <button className="primary-button" onClick={goDeeper}>
             Go Deeper
@@ -124,16 +141,22 @@ function DetailsPage() {
             ))}
           </div>
         </div>
-      </Content>
-    </Page>
+      </cap-content>
+    </cap-page>
   )
 }
 
-// Nested Page Component
+// Nested page
 function NestedPage() {
   const navigate = useNavigate()
   const { id } = useParams({ from: '/nested/$id' })
-  const { setDirection } = useTransition()
+  const pageRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (pageRef.current) {
+      return setupPage(pageRef.current)
+    }
+  }, [])
 
   const goBack = () => {
     setDirection('back')
@@ -146,16 +169,16 @@ function NestedPage() {
   }
 
   return (
-    <Page>
-      <Header>
+    <cap-page ref={pageRef}>
+      <cap-header slot="header">
         <div className="toolbar">
           <button className="back-button" onClick={goBack}>
             ‹ Back
           </button>
           <h1>Nested {id}</h1>
         </div>
-      </Header>
-      <Content>
+      </cap-header>
+      <cap-content slot="content">
         <div className="page-content">
           <h2>Deeply Nested View</h2>
           <p>This is a nested page demonstrating multi-level navigation.</p>
@@ -164,8 +187,8 @@ function NestedPage() {
             Go to Root (with fade)
           </button>
         </div>
-      </Content>
-    </Page>
+      </cap-content>
+    </cap-page>
   )
 }
 
@@ -188,21 +211,13 @@ const nestedRoute = createRoute({
   component: NestedPage,
 })
 
-// Create router
 const routeTree = rootRoute.addChildren([indexRoute, detailsRoute, nestedRoute])
-
 const router = createRouter({ routeTree })
 
-// Type registration for TypeScript
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
 
-// Render
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
-)
+ReactDOM.createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)

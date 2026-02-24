@@ -425,17 +425,29 @@ The React example demonstrates iOS-style page transitions with smooth animations
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/c06a6c5a-c318-44ab-a57c-992ba9cfacd4" width="300" alt="React Home Page" />
+      <img
+        src="https://github.com/user-attachments/assets/c06a6c5a-c318-44ab-a57c-992ba9cfacd4"
+        width="300"
+        alt="React Home Page"
+      />
       <br />
       <strong>Home Page</strong>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/6fd808da-6352-4660-8c79-e32184332df8" width="300" alt="React Details Page" />
+      <img
+        src="https://github.com/user-attachments/assets/6fd808da-6352-4660-8c79-e32184332df8"
+        width="300"
+        alt="React Details Page"
+      />
       <br />
       <strong>Details Page</strong>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/8516dcf0-4189-40d9-a400-154b73c0135e" width="300" alt="React Nested Page" />
+      <img
+        src="https://github.com/user-attachments/assets/8516dcf0-4189-40d9-a400-154b73c0135e"
+        width="300"
+        alt="React Nested Page"
+      />
       <br />
       <strong>Nested Page</strong>
     </td>
@@ -443,6 +455,7 @@ The React example demonstrates iOS-style page transitions with smooth animations
 </table>
 
 Features demonstrated:
+
 - Forward navigation with slide-in animation
 - Back navigation with slide-out animation
 - Multi-level page stack

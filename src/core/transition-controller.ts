@@ -22,7 +22,13 @@ import type {
   TransitionLifecycle,
   TransitionAnimationOptions,
 } from './types';
-import { supportsViewTransitions, runViewTransition, injectViewTransitionsCSS } from './view-transitions';
+import {
+  supportsViewTransitions,
+  runViewTransition,
+  injectViewTransitionsCSS,
+  setViewTransitionName,
+  clearViewTransitionName,
+} from './view-transitions';
 
 /** Default global configuration */
 const DEFAULT_CONFIG: Required<TransitionGlobalConfig> = {
@@ -115,9 +121,15 @@ export class TransitionController {
     const id = options.id || `page-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     // Find header, content, footer within the page
-    const header = element.querySelector('[data-cap-header], .cap-header') as HTMLElement | null;
-    const content = element.querySelector('[data-cap-content], .cap-content') as HTMLElement | null;
-    const footer = element.querySelector('[data-cap-footer], .cap-footer') as HTMLElement | null;
+    const header = element.querySelector(
+      '[data-cap-header], .cap-header, cap-header, [slot="header"]',
+    ) as HTMLElement | null;
+    const content = element.querySelector(
+      '[data-cap-content], .cap-content, cap-content, [slot="content"]',
+    ) as HTMLElement | null;
+    const footer = element.querySelector(
+      '[data-cap-footer], .cap-footer, cap-footer, [slot="footer"]',
+    ) as HTMLElement | null;
 
     return {
       id,
@@ -173,6 +185,11 @@ export class TransitionController {
       if (direction === 'root') {
         // Clear the stack and set new root
         this.pageStack = [enteringState];
+      } else if (direction === 'back' && this.pageStack.length > 0) {
+        // Router-driven back navigation should replace the current page entry
+        // instead of pushing a new one, otherwise the stack drifts over time.
+        this.pageStack.pop();
+        this.pageStack.push(enteringState);
       } else {
         // Push new page onto stack
         this.pageStack.push(enteringState);
@@ -230,14 +247,20 @@ export class TransitionController {
         config.useViewTransitions !== false && this.config.useViewTransitions && supportsViewTransitions();
 
       if (useViewTransitions) {
+        this.prepareViewTransitionElements(enteringState, leavingState);
+
         // Use View Transitions API
         await runViewTransition({
           direction,
           update: () => {
             updateStack();
             this.updatePageVisibility(enteringState, leavingState);
+            this.applyViewTransitionNames(enteringState);
+            this.clearViewTransitionNames(leavingState);
           },
         });
+
+        this.clearViewTransitionNames(enteringState, leavingState);
       } else {
         // Use Web Animations API
         updateStack();
@@ -325,6 +348,109 @@ export class TransitionController {
       leavingState.element.style.display = 'none';
       leavingState.element.style.visibility = 'hidden';
     }
+  }
+
+  /**
+   * Prepare entering/leaving elements for a View Transition capture.
+   * Entering page must be hidden in the "old" snapshot.
+   */
+  private prepareViewTransitionElements(enteringState: PageState, leavingState: PageState | undefined): void {
+    this.clearAllKnownViewTransitionNames(enteringState, leavingState);
+
+    if (leavingState) {
+      this.applyViewTransitionNames(leavingState);
+      enteringState.element.style.display = 'none';
+      enteringState.element.style.visibility = 'hidden';
+    }
+  }
+
+  /**
+   * Assign view transition names to a page's layout parts.
+   */
+  private applyViewTransitionNames(pageState: PageState): void {
+    const { header, content, footer } = this.resolvePageParts(pageState);
+
+    if (header) {
+      setViewTransitionName(header, 'cap-header');
+    }
+    if (content) {
+      setViewTransitionName(content, 'cap-content');
+    }
+    if (footer) {
+      setViewTransitionName(footer, 'cap-footer');
+    }
+  }
+
+  /**
+   * Clear view transition names for one or more page states.
+   */
+  private clearViewTransitionNames(...states: (PageState | undefined)[]): void {
+    for (const state of states) {
+      if (!state) continue;
+      const { header, content, footer } = this.resolvePageParts(state);
+
+      if (header) {
+        clearViewTransitionName(header);
+      }
+      if (content) {
+        clearViewTransitionName(content);
+      }
+      if (footer) {
+        clearViewTransitionName(footer);
+      }
+    }
+  }
+
+  /**
+   * Clear view transition names from all known pages plus transient states.
+   */
+  private clearAllKnownViewTransitionNames(...extraStates: (PageState | undefined)[]): void {
+    const knownStates = new Set<PageState>();
+
+    for (const state of this.pageStack) {
+      knownStates.add(state);
+    }
+    for (const state of extraStates) {
+      if (state) {
+        knownStates.add(state);
+      }
+    }
+
+    this.clearViewTransitionNames(...knownStates);
+  }
+
+  /**
+   * Resolve page parts lazily to avoid timing issues with custom-element setup.
+   */
+  private resolvePageParts(pageState: PageState): {
+    header?: HTMLElement;
+    content?: HTMLElement;
+    footer?: HTMLElement;
+  } {
+    const header =
+      pageState.header ||
+      (pageState.element.querySelector(
+        '[data-cap-header], .cap-header, cap-header, [slot="header"]',
+      ) as HTMLElement | null) ||
+      undefined;
+    const content =
+      pageState.content ||
+      (pageState.element.querySelector(
+        '[data-cap-content], .cap-content, cap-content, [slot="content"]',
+      ) as HTMLElement | null) ||
+      undefined;
+    const footer =
+      pageState.footer ||
+      (pageState.element.querySelector(
+        '[data-cap-footer], .cap-footer, cap-footer, [slot="footer"]',
+      ) as HTMLElement | null) ||
+      undefined;
+
+    if (header) pageState.header = header;
+    if (content) pageState.content = content;
+    if (footer) pageState.footer = footer;
+
+    return { header, content, footer };
   }
 
   /**

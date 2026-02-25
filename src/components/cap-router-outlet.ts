@@ -24,6 +24,7 @@ export class CapRouterOutlet extends HTMLElement {
   private options: CapRouterOutletOptions;
   private observer: MutationObserver | null = null;
   private pendingPage: HTMLElement | null = null;
+  private ignoredNodes = new WeakSet<HTMLElement>();
 
   static get observedAttributes(): string[] {
     return ['platform', 'duration', 'keep-in-dom', 'max-cached'];
@@ -91,13 +92,58 @@ export class CapRouterOutlet extends HTMLElement {
    * Handle DOM mutations (child additions/removals)
    */
   private handleMutations(mutations: MutationRecord[]) {
+    const addedNodes: HTMLElement[] = [];
+    const removedNodes: HTMLElement[] = [];
+
     for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node instanceof HTMLElement && node !== this.pendingPage) {
-          // New page added - trigger transition
-          this.handleNewPage(node);
+      for (const node of mutation.removedNodes) {
+        if (node instanceof HTMLElement) {
+          removedNodes.push(node);
         }
       }
+
+      for (const node of mutation.addedNodes) {
+        if (node instanceof HTMLElement) {
+          addedNodes.push(node);
+        }
+      }
+    }
+
+    // Some routers remove the current page before adding the next one.
+    // Re-insert it temporarily so leaving animations remain visible.
+    const currentEl = this.controller.currentPage?.element;
+    if (currentEl && removedNodes.includes(currentEl) && addedNodes.length > 0 && !currentEl.isConnected) {
+      this.stylePageForTransition(currentEl);
+      currentEl.style.display = '';
+      currentEl.style.visibility = 'visible';
+
+      const anchor = addedNodes[0];
+      this.ignoredNodes.add(currentEl);
+      if (anchor.parentElement === this) {
+        this.insertBefore(currentEl, anchor);
+      } else {
+        this.appendChild(currentEl);
+      }
+    }
+
+    // Remove detached historical pages from internal stack bookkeeping.
+    for (const node of removedNodes) {
+      if (node === currentEl) continue;
+      const state = this.controller.stack.find((pageState) => pageState.element === node);
+      if (state) {
+        this.controller.removePage(state.id);
+      }
+    }
+
+    for (const node of addedNodes) {
+      if (node === this.pendingPage) continue;
+      if (this.ignoredNodes.has(node)) {
+        this.ignoredNodes.delete(node);
+        continue;
+      }
+
+      // New page added - trigger transition
+      this.handleNewPage(node);
     }
   }
 
@@ -120,15 +166,16 @@ export class CapRouterOutlet extends HTMLElement {
    * Handle a new page being added
    */
   private async handleNewPage(page: HTMLElement) {
-    // Determine direction from data attribute or default to forward
-    const direction = (page.dataset.direction as TransitionDirection) || 'forward';
+    // Determine direction from page, outlet, or default to forward.
+    // Framework adapters can set direction on the outlet right before navigation.
+    const outletDirection = this.dataset.direction as TransitionDirection | undefined;
+    const direction = (page.dataset.direction as TransitionDirection) || outletDirection || 'forward';
+    if (outletDirection) {
+      delete this.dataset.direction;
+    }
 
     // Set up the page element
-    page.style.position = 'absolute';
-    page.style.top = '0';
-    page.style.left = '0';
-    page.style.width = '100%';
-    page.style.height = '100%';
+    this.stylePageForTransition(page);
 
     this.pendingPage = page;
 
@@ -184,11 +231,7 @@ export class CapRouterOutlet extends HTMLElement {
    * Programmatic navigation - push a new page
    */
   async push(page: HTMLElement, config: TransitionConfig = {}): Promise<void> {
-    page.style.position = 'absolute';
-    page.style.top = '0';
-    page.style.left = '0';
-    page.style.width = '100%';
-    page.style.height = '100%';
+    this.stylePageForTransition(page);
 
     this.appendChild(page);
     await this.controller.push(page, config);
@@ -216,11 +259,7 @@ export class CapRouterOutlet extends HTMLElement {
   async setRoot(page: HTMLElement, config: TransitionConfig = {}): Promise<void> {
     const oldChildren = Array.from(this.children) as HTMLElement[];
 
-    page.style.position = 'absolute';
-    page.style.top = '0';
-    page.style.left = '0';
-    page.style.width = '100%';
-    page.style.height = '100%';
+    this.stylePageForTransition(page);
 
     this.appendChild(page);
     await this.controller.setRoot(page, config);
@@ -250,6 +289,17 @@ export class CapRouterOutlet extends HTMLElement {
    */
   getController(): TransitionController {
     return this.controller;
+  }
+
+  /**
+   * Apply layout styles required for transition animations.
+   */
+  private stylePageForTransition(page: HTMLElement): void {
+    page.style.position = 'absolute';
+    page.style.top = '0';
+    page.style.left = '0';
+    page.style.width = '100%';
+    page.style.height = '100%';
   }
 }
 

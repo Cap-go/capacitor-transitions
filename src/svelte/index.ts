@@ -40,6 +40,12 @@ export function getDirection(): TransitionDirection {
 
 export function setDirection(direction: TransitionDirection): void {
   globalDirection = direction;
+
+  if (typeof document !== 'undefined') {
+    for (const outlet of document.querySelectorAll('cap-router-outlet')) {
+      (outlet as HTMLElement).dataset.direction = direction;
+    }
+  }
 }
 
 /**

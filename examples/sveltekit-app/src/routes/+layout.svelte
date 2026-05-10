@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { initTransitions, routerOutlet } from '@capgo/transitions/svelte'
-  import '@capgo/transitions'
+  import { initTransitions, routerOutlet } from '@capgo/capacitor-transitions/svelte'
+  import '@capgo/capacitor-transitions'
   import '../app.css'
 
   // Initialize on mount

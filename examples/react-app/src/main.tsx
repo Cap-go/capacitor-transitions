@@ -6,8 +6,8 @@ import {
   setDirection,
   setupPage,
   setupRouterOutlet,
-} from '@capgo/transitions/react'
-import '@capgo/transitions'
+} from '@capgo/capacitor-transitions/react'
+import '@capgo/capacitor-transitions'
 import './styles.css'
 
 // Initialize transitions

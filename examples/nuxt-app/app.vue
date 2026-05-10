@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { setupRouterOutlet } from '@capgo/transitions/vue'
+import { setupRouterOutlet } from '@capgo/capacitor-transitions/vue'
 
 const outletRef = ref<HTMLElement | null>(null)
 

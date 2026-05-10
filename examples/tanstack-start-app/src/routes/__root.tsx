@@ -1,7 +1,7 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { useRef, useEffect } from 'react'
-import { initTransitions, setupRouterOutlet } from '@capgo/transitions/react'
-import '@capgo/transitions'
+import { initTransitions, setupRouterOutlet } from '@capgo/capacitor-transitions/react'
+import '@capgo/capacitor-transitions'
 import '../styles.css'
 
 // Initialize transitions

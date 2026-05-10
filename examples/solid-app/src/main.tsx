@@ -7,8 +7,8 @@ import {
   setDirection,
   setupPage,
   setupRouterOutlet,
-} from '@capgo/transitions/solid'
-import '@capgo/transitions'
+} from '@capgo/capacitor-transitions/solid'
+import '@capgo/capacitor-transitions'
 import './styles.css'
 
 // Initialize transitions

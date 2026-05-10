@@ -1,5 +1,5 @@
 /**
- * Vue bindings for @capgo/transitions
+ * Vue bindings for @capgo/capacitor-transitions
  * Helper functions for using web components in Vue
  */
 
@@ -81,7 +81,7 @@ export function setupRouterOutlet(
  * ```vue
  * <script setup>
  * import { ref, onMounted, onUnmounted } from 'vue'
- * import { setupPage } from '@capgo/transitions/vue'
+ * import { setupPage } from '@capgo/capacitor-transitions/vue'
  *
  * const pageRef = ref<HTMLElement | null>(null)
  * let cleanup: (() => void) | undefined
@@ -146,7 +146,7 @@ export function setupPage(
  * ```vue
  * <script setup>
  * import { useRouter } from 'vue-router'
- * import { createTransitionNavigate } from '@capgo/transitions/vue'
+ * import { createTransitionNavigate } from '@capgo/capacitor-transitions/vue'
  *
  * const router = useRouter()
  * const transitionNavigate = createTransitionNavigate((to) => router.push(to))

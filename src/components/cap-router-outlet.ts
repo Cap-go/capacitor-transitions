@@ -48,6 +48,8 @@ export class CapRouterOutlet extends HTMLElement {
   private swipeGesturePointer: SwipeGesturePointerState | null = null;
   private swipeGestureListenersActive = false;
   private skipNextHistoryBackTransition = false;
+  private swipeBackDepth = 0;
+  private lastNavigationHref: string | null = null;
 
   private readonly swipeGestureEdgeWidth = 50;
   private readonly swipeGestureThreshold = 10;
@@ -76,6 +78,7 @@ export class CapRouterOutlet extends HTMLElement {
     this.style.width = '100%';
     this.style.height = '100%';
     this.style.overflow = 'hidden';
+    this.lastNavigationHref = this.getCurrentNavigationHref();
 
     // Observe child changes to detect page additions
     this.observer = new MutationObserver((mutations) => {
@@ -100,6 +103,8 @@ export class CapRouterOutlet extends HTMLElement {
     this.observer?.disconnect();
     this.removeSwipeGestureListeners();
     this.controller.clear();
+    this.swipeBackDepth = 0;
+    this.lastNavigationHref = null;
   }
 
   attributeChangedCallback(name: string, _oldValue: string, newValue: string): void {
@@ -195,6 +200,8 @@ export class CapRouterOutlet extends HTMLElement {
 
     // Add to controller stack manually
     (this.controller as unknown as { pageStack: PageState[] }).pageStack.push(state);
+    this.swipeBackDepth = 0;
+    this.lastNavigationHref = this.getCurrentNavigationHref();
   }
 
   /**
@@ -210,6 +217,7 @@ export class CapRouterOutlet extends HTMLElement {
     }
     const skipTransition = this.skipNextHistoryBackTransition && direction === 'back';
     this.skipNextHistoryBackTransition = false;
+    const hadPageBefore = this.controller.stack.length > 0;
 
     // Set up the page element
     this.stylePageForTransition(page);
@@ -217,7 +225,10 @@ export class CapRouterOutlet extends HTMLElement {
     this.pendingPage = page;
 
     try {
-      await this.controller.navigate(page, { direction, duration: skipTransition ? 0 : undefined });
+      const result = await this.controller.navigate(page, { direction, duration: skipTransition ? 0 : undefined });
+      if (result.success) {
+        this.recordCompletedNavigation(direction, { hadPageBefore });
+      }
     } finally {
       this.pendingPage = null;
     }
@@ -270,8 +281,18 @@ export class CapRouterOutlet extends HTMLElement {
   async push(page: HTMLElement, config: TransitionConfig = {}): Promise<void> {
     this.stylePageForTransition(page);
 
+    const hadPageBefore = this.controller.stack.length > 0;
+    this.pendingPage = page;
     this.appendChild(page);
-    await this.controller.push(page, config);
+
+    try {
+      const result = await this.controller.push(page, config);
+      if (result.success) {
+        this.recordCompletedNavigation('forward', { hadPageBefore, forceForward: true });
+      }
+    } finally {
+      this.pendingPage = null;
+    }
   }
 
   /**
@@ -280,12 +301,16 @@ export class CapRouterOutlet extends HTMLElement {
   async pop(config: TransitionConfig = {}): Promise<void> {
     const result = await this.controller.pop(config);
 
-    if (result.success && !this.options.keepInDom) {
-      // Remove the popped page from DOM
-      const children = Array.from(this.children) as HTMLElement[];
-      const lastChild = children[children.length - 1];
-      if (lastChild) {
-        lastChild.remove();
+    if (result.success) {
+      this.recordCompletedNavigation('back', { hadPageBefore: true });
+
+      if (!this.options.keepInDom) {
+        // Remove the popped page from DOM
+        const children = Array.from(this.children) as HTMLElement[];
+        const lastChild = children[children.length - 1];
+        if (lastChild) {
+          lastChild.remove();
+        }
       }
     }
   }
@@ -298,8 +323,17 @@ export class CapRouterOutlet extends HTMLElement {
 
     this.stylePageForTransition(page);
 
+    this.pendingPage = page;
     this.appendChild(page);
-    await this.controller.setRoot(page, config);
+
+    try {
+      const result = await this.controller.setRoot(page, config);
+      if (result.success) {
+        this.recordCompletedNavigation('root', { hadPageBefore: true });
+      }
+    } finally {
+      this.pendingPage = null;
+    }
 
     // Remove all old pages
     for (const child of oldChildren) {
@@ -318,7 +352,7 @@ export class CapRouterOutlet extends HTMLElement {
    * Check if we can go back
    */
   get canGoBack(): boolean {
-    return this.controller.stack.length > 1;
+    return this.controller.stack.length > 1 && this.swipeBackDepth > 0;
   }
 
   /**
@@ -425,6 +459,43 @@ export class CapRouterOutlet extends HTMLElement {
     }
 
     return isNativeSwipeGesturePlatform();
+  }
+
+  private getCurrentNavigationHref(): string | null {
+    return this.ownerDocument.defaultView?.location.href ?? null;
+  }
+
+  private recordCompletedNavigation(
+    direction: TransitionDirection,
+    options: { hadPageBefore: boolean; forceForward?: boolean },
+  ): void {
+    const currentHref = this.getCurrentNavigationHref();
+
+    if (!options.hadPageBefore || direction === 'root') {
+      this.swipeBackDepth = 0;
+      this.lastNavigationHref = currentHref;
+      return;
+    }
+
+    if (direction === 'back') {
+      this.swipeBackDepth = Math.max(0, this.swipeBackDepth - 1);
+      this.lastNavigationHref = currentHref;
+      return;
+    }
+
+    if (direction === 'forward' || direction === 'none') {
+      const hrefChanged =
+        currentHref === null || this.lastNavigationHref === null || currentHref !== this.lastNavigationHref;
+
+      if (options.forceForward || hrefChanged) {
+        this.swipeBackDepth += 1;
+      }
+
+      this.lastNavigationHref = currentHref;
+      return;
+    }
+
+    this.lastNavigationHref = currentHref;
   }
 
   private canStartSwipeGesture(event: PointerEvent): boolean {

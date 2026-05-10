@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { setupPage, setDirection } from '@capgo/transitions/vue'
+import { setupPage, setDirection } from '@capgo/capacitor-transitions/vue'
 
 const router = useRouter()
 const route = useRoute()

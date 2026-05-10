@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capgo/transitions": "file:../.."
+    "@capgo/capacitor-transitions": "file:../.."
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",

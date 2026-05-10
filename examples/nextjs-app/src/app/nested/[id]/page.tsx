@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { setDirection, setupPage } from '@capgo/transitions/react'
+import { setDirection, setupPage } from '@capgo/capacitor-transitions/react'
 
 export default function NestedPage() {
   const router = useRouter()

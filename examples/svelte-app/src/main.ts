@@ -1,6 +1,6 @@
 import App from './App.svelte'
 import { mount } from 'svelte'
-import { initTransitions } from '@capgo/transitions/svelte'
+import { initTransitions } from '@capgo/capacitor-transitions/svelte'
 import './styles.css'
 
 // Initialize transitions

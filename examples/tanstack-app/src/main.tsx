@@ -9,8 +9,8 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router'
-import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/react'
-import '@capgo/transitions'
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/capacitor-transitions/react'
+import '@capgo/capacitor-transitions'
 import './styles.css'
 
 // Initialize transitions

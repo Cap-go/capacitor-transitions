@@ -1,5 +1,5 @@
 /**
- * @capgo/transitions
+ * @capgo/capacitor-transitions
  * Framework-agnostic page transitions for Capacitor apps
  *
  * Features:

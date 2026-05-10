@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { page, setDirection } from '@capgo/transitions/svelte'
+  import { page, setDirection } from '@capgo/capacitor-transitions/svelte'
 
   const goToDetails = (id: number) => {
     setDirection('forward')

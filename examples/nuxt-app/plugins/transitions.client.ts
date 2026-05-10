@@ -1,5 +1,5 @@
-import { initTransitions } from '@capgo/transitions/vue'
-import '@capgo/transitions'
+import { initTransitions } from '@capgo/capacitor-transitions/vue'
+import '@capgo/capacitor-transitions'
 
 export default defineNuxtPlugin(() => {
   // Initialize transitions on client side only

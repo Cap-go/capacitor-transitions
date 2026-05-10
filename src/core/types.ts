@@ -1,5 +1,5 @@
 /**
- * Core types for @capgo/transitions
+ * Core types for @capgo/capacitor-transitions
  * Framework-agnostic page transitions for Capacitor apps
  */
 

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "svelte": "^5.0.0",
-    "@capgo/transitions": "file:../.."
+    "@capgo/capacitor-transitions": "file:../.."
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.0",

@@ -5,7 +5,7 @@
     "": {
       "name": "cap-transitions-tanstack-example",
       "dependencies": {
-        "@capgo/transitions": "file:../..",
+        "@capgo/capacitor-transitions": "file:../..",
         "@tanstack/react-router": "^1.91.0",
         "react": "^18.3.0",
         "react-dom": "^18.3.0",
@@ -58,7 +58,7 @@
 
     "@babel/types": ["@babel/types@7.28.5", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA=="],
 
-    "@capgo/transitions": ["@capgo/transitions@file:../..", { "devDependencies": { "@ionic/eslint-config": "^0.4.0", "@ionic/prettier-config": "^4.0.0", "@types/node": "^22.0.0", "eslint": "^8.57.1", "eslint-plugin-import": "^2.31.0", "husky": "^9.1.7", "prettier": "^3.6.2", "prettier-pretty-check": "^0.2.0", "tsup": "^8.0.0", "typescript": "^5.7.0", "vitest": "^2.0.0" }, "peerDependencies": { "@angular/core": ">=17.0.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "solid-js": ">=1.0.0", "svelte": ">=4.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["@angular/core", "react", "react-dom", "solid-js", "svelte", "vue"] }],
+    "@capgo/capacitor-transitions": ["@capgo/capacitor-transitions@file:../..", { "devDependencies": { "@ionic/eslint-config": "^0.4.0", "@ionic/prettier-config": "^4.0.0", "@types/node": "^22.0.0", "eslint": "^8.57.1", "eslint-plugin-import": "^2.31.0", "husky": "^9.1.7", "prettier": "^3.6.2", "prettier-pretty-check": "^0.2.0", "tsup": "^8.0.0", "typescript": "^5.7.0", "vitest": "^2.0.0" }, "peerDependencies": { "@angular/core": ">=17.0.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "solid-js": ">=1.0.0", "svelte": ">=4.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["@angular/core", "react", "react-dom", "solid-js", "svelte", "vue"] }],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.2", "", { "os": "aix", "cpu": "ppc64" }, "sha512-GZMB+a0mOMZs4MpDbj8RJp4cw+w1WV5NYD6xzgvzUJ5Ek2jerwfO2eADyI6ExDSUED+1X8aMbegahsJi+8mgpw=="],
 

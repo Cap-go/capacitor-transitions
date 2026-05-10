@@ -363,6 +363,7 @@ export class TransitionController {
    * Remove styles that should only exist while a page is actively transitioning.
    */
   private clearTransitionOnlyStyles(element: HTMLElement): void {
+    element.classList.remove('cap-transition-active');
     element.style.removeProperty('z-index');
     element.style.removeProperty('pointer-events');
     element.style.removeProperty('will-change');

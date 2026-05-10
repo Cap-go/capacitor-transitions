@@ -105,6 +105,7 @@ function getDocumentDirection(element: HTMLElement): 'ltr' | 'rtl' {
 }
 
 function preparePageLayer(element: HTMLElement, zIndex: string): void {
+  element.classList.add('cap-transition-active');
   element.style.display = '';
   element.style.visibility = 'visible';
   element.style.position = 'absolute';
@@ -127,10 +128,26 @@ function createAnimation(element: HTMLElement, keyframes: Keyframe[], duration: 
   });
 }
 
+function resolvePageContents(element: HTMLElement): HTMLElement[] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>(
+      ':scope > [data-cap-content], :scope > .cap-content, :scope > cap-content, :scope > [slot="content"]',
+    ),
+  );
+}
+
 function resolvePageChrome(element: HTMLElement): HTMLElement[] {
   return Array.from(
     element.querySelectorAll<HTMLElement>(
       ':scope > [data-cap-header], :scope > .cap-header, :scope > cap-header, :scope > [slot="header"], :scope > [data-cap-footer], :scope > .cap-footer, :scope > cap-footer, :scope > [slot="footer"]',
+    ),
+  );
+}
+
+function resolvePageHeaders(element: HTMLElement): HTMLElement[] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>(
+      ':scope > [data-cap-header], :scope > .cap-header, :scope > cap-header, :scope > [slot="header"]',
     ),
   );
 }
@@ -158,6 +175,74 @@ function createPinnedChromeAnimations(
   });
 }
 
+function uniqueElements(elements: HTMLElement[]): HTMLElement[] {
+  return Array.from(new Set(elements));
+}
+
+function resolveToolbarItems(header: HTMLElement): HTMLElement[] {
+  const toolbarItems = Array.from(
+    header.querySelectorAll<HTMLElement>(
+      ':scope > [data-cap-toolbar] > *, :scope > .toolbar > *, :scope > [role="toolbar"] > *, :scope > ion-toolbar > *',
+    ),
+  );
+  const directItems = Array.from(
+    header.querySelectorAll<HTMLElement>(
+      ':scope > [data-cap-toolbar-item], :scope > .cap-toolbar-item, :scope > h1, :scope > h2, :scope > h3, :scope > button, :scope > a',
+    ),
+  );
+
+  return uniqueElements(
+    [...toolbarItems, ...directItems].filter(
+      (element) =>
+        !element.matches('[data-cap-toolbar-background], .toolbar-background, [aria-hidden="true"]') &&
+        element.tagName !== 'STYLE' &&
+        element.tagName !== 'SCRIPT',
+    ),
+  );
+}
+
+function createOpacityAnimations(
+  elements: HTMLElement[],
+  fromOpacity: number,
+  toOpacity: number,
+  duration: number,
+  easing: string,
+): Animation[] {
+  return elements.map((element) => {
+    element.style.willChange = 'opacity';
+    element.style.backfaceVisibility = 'hidden';
+
+    return createAnimation(element, [{ opacity: fromOpacity }, { opacity: toOpacity }], duration, easing);
+  });
+}
+
+function createToolbarItemAnimations(
+  headers: HTMLElement[],
+  fromTransform: string,
+  toTransform: string,
+  fromOpacity: number,
+  toOpacity: number,
+  duration: number,
+  easing: string,
+): Animation[] {
+  return headers.flatMap((header) =>
+    resolveToolbarItems(header).map((element) => {
+      element.style.willChange = 'transform, opacity';
+      element.style.backfaceVisibility = 'hidden';
+
+      return createAnimation(
+        element,
+        [
+          { transform: fromTransform, opacity: fromOpacity },
+          { transform: toTransform, opacity: toOpacity },
+        ],
+        duration,
+        easing,
+      );
+    }),
+  );
+}
+
 /**
  * iOS-style horizontal slide transition
  * Forward: new page slides in from right
@@ -175,6 +260,10 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
   const chromeOffRight = invertTranslateOffset(offRight);
   const chromeOffLeft = invertTranslateOffset(offLeft);
   const leadingEdgeShadow = isRTL ? '8px 0 24px rgba(0, 0, 0, 0.18)' : '-8px 0 24px rgba(0, 0, 0, 0.18)';
+  const enteringContent = resolvePageContents(enteringEl);
+  const enteringHeaders = resolvePageHeaders(enteringEl);
+  const leavingContent = leavingEl ? resolvePageContents(leavingEl) : [];
+  const leavingHeaders = leavingEl ? resolvePageHeaders(leavingEl) : [];
 
   preparePageLayer(enteringEl, isBack ? '99' : '101');
   if (leavingEl) {
@@ -221,10 +310,19 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
     animations.push(
       createAnimation(
         enteringEl,
-        [
-          { transform: `translate3d(${offLeft}, 0, 0)`, opacity: IOS_OFF_OPACITY },
-          { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
-        ],
+        [{ transform: `translate3d(${offLeft}, 0, 0)` }, { transform: `translate3d(${IOS_CENTER}, 0, 0)` }],
+        duration,
+        easing,
+      ),
+    );
+    animations.push(...createOpacityAnimations(enteringContent, IOS_OFF_OPACITY, 1, duration, easing));
+    animations.push(
+      ...createToolbarItemAnimations(
+        enteringHeaders,
+        `translate3d(${offLeft}, 0, 0)`,
+        `translate3d(${IOS_CENTER}, 0, 0)`,
+        0.01,
+        1,
         duration,
         easing,
       ),
@@ -244,10 +342,18 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
       animations.push(
         createAnimation(
           leavingEl,
-          [
-            { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
-            { transform: `translate3d(${offRight}, 0, 0)`, opacity: 1 },
-          ],
+          [{ transform: `translate3d(${IOS_CENTER}, 0, 0)` }, { transform: `translate3d(${offRight}, 0, 0)` }],
+          duration,
+          easing,
+        ),
+      );
+      animations.push(
+        ...createToolbarItemAnimations(
+          leavingHeaders,
+          `translate3d(${IOS_CENTER}, 0, 0)`,
+          `translate3d(${offRight}, 0, 0)`,
+          0.99,
+          0,
           duration,
           easing,
         ),
@@ -267,10 +373,18 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
     animations.push(
       createAnimation(
         enteringEl,
-        [
-          { transform: `translate3d(${offRight}, 0, 0)`, opacity: 1 },
-          { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
-        ],
+        [{ transform: `translate3d(${offRight}, 0, 0)` }, { transform: `translate3d(${IOS_CENTER}, 0, 0)` }],
+        duration,
+        easing,
+      ),
+    );
+    animations.push(
+      ...createToolbarItemAnimations(
+        enteringHeaders,
+        `translate3d(${offRight}, 0, 0)`,
+        `translate3d(${IOS_CENTER}, 0, 0)`,
+        0.01,
+        1,
         duration,
         easing,
       ),
@@ -289,10 +403,19 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
       animations.push(
         createAnimation(
           leavingEl,
-          [
-            { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
-            { transform: `translate3d(${offLeft}, 0, 0)`, opacity: IOS_OFF_OPACITY },
-          ],
+          [{ transform: `translate3d(${IOS_CENTER}, 0, 0)` }, { transform: `translate3d(${offLeft}, 0, 0)` }],
+          duration,
+          easing,
+        ),
+      );
+      animations.push(...createOpacityAnimations(leavingContent, 1, IOS_OFF_OPACITY, duration, easing));
+      animations.push(
+        ...createToolbarItemAnimations(
+          leavingHeaders,
+          `translate3d(${IOS_CENTER}, 0, 0)`,
+          `translate3d(${offLeft}, 0, 0)`,
+          0.99,
+          0,
           duration,
           easing,
         ),

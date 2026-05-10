@@ -4,15 +4,35 @@
  * Works with any framework's router
  */
 
+import { detectNativePlatform, isNativeBackSwipePlatform } from '../core/native-platform';
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
-import type { TransitionConfig, TransitionGlobalConfig, TransitionDirection, PageState } from '../core/types';
+import type {
+  TransitionConfig,
+  TransitionGlobalConfig,
+  TransitionDirection,
+  PageState,
+  SwipeBackOption,
+  SwipeBackEventDetail,
+} from '../core/types';
 
 export interface CapRouterOutletOptions extends TransitionGlobalConfig {
   /** Keep pages in DOM after navigating away */
   keepInDom?: boolean;
   /** Maximum cached pages */
   maxCached?: number;
+  /** Edge swipe-back gesture support */
+  swipeBack?: SwipeBackOption;
+}
+
+interface SwipeBackPointerState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+  startTime: number;
+  dragging: boolean;
 }
 
 /**
@@ -25,9 +45,15 @@ export class CapRouterOutlet extends HTMLElement {
   private observer: MutationObserver | null = null;
   private pendingPage: HTMLElement | null = null;
   private ignoredNodes = new WeakSet<HTMLElement>();
+  private swipeBackPointer: SwipeBackPointerState | null = null;
+  private swipeBackListenersActive = false;
+
+  private readonly swipeBackEdgeWidth = 32;
+  private readonly swipeBackMinimumDistance = 72;
+  private readonly swipeBackMinimumVelocity = 0.45;
 
   static get observedAttributes(): string[] {
-    return ['platform', 'duration', 'keep-in-dom', 'max-cached'];
+    return ['platform', 'duration', 'keep-in-dom', 'max-cached', 'swipe-back'];
   }
 
   constructor() {
@@ -36,6 +62,7 @@ export class CapRouterOutlet extends HTMLElement {
     this.options = {
       keepInDom: true,
       maxCached: 10,
+      swipeBack: 'auto',
     };
 
     this.controller = createTransitionController();
@@ -64,10 +91,13 @@ export class CapRouterOutlet extends HTMLElement {
     if (children.length > 0) {
       this.initializeFirstPage(children[children.length - 1]);
     }
+
+    this.updateSwipeBackListeners();
   }
 
   disconnectedCallback(): void {
     this.observer?.disconnect();
+    this.removeSwipeBackListeners();
     this.controller.clear();
   }
 
@@ -84,6 +114,10 @@ export class CapRouterOutlet extends HTMLElement {
         break;
       case 'max-cached':
         this.options.maxCached = parseInt(newValue, 10);
+        break;
+      case 'swipe-back':
+        this.options.swipeBack = this.parseSwipeBackAttribute(newValue);
+        this.updateSwipeBackListeners();
         break;
     }
   }
@@ -285,6 +319,34 @@ export class CapRouterOutlet extends HTMLElement {
   }
 
   /**
+   * Get whether edge swipe-back is enabled.
+   */
+  get swipeBack(): SwipeBackOption {
+    return this.options.swipeBack ?? 'auto';
+  }
+
+  /**
+   * Enable, disable, or native-detect edge swipe-back.
+   */
+  set swipeBack(value: SwipeBackOption) {
+    this.setSwipeBack(value);
+  }
+
+  /**
+   * Enable, disable, or native-detect edge swipe-back.
+   */
+  setSwipeBack(value: SwipeBackOption): void {
+    this.options.swipeBack = value;
+
+    const serialized = this.serializeSwipeBack(value);
+    if (this.getAttribute('swipe-back') !== serialized) {
+      this.setAttribute('swipe-back', serialized);
+    } else {
+      this.updateSwipeBackListeners();
+    }
+  }
+
+  /**
    * Get the transition controller for advanced usage
    */
   getController(): TransitionController {
@@ -300,6 +362,246 @@ export class CapRouterOutlet extends HTMLElement {
     page.style.left = '0';
     page.style.width = '100%';
     page.style.height = '100%';
+  }
+
+  private parseSwipeBackAttribute(value: string | null): SwipeBackOption {
+    if (value === null || value === 'auto') {
+      return 'auto';
+    }
+
+    if (value === 'false') {
+      return false;
+    }
+
+    return true;
+  }
+
+  private serializeSwipeBack(value: SwipeBackOption): string {
+    return typeof value === 'boolean' ? String(value) : value;
+  }
+
+  private updateSwipeBackListeners(): void {
+    if (this.options.swipeBack === false) {
+      this.removeSwipeBackListeners();
+      return;
+    }
+
+    if (this.swipeBackListenersActive || typeof PointerEvent === 'undefined') {
+      return;
+    }
+
+    this.addEventListener('pointerdown', this.handleSwipeBackPointerDown);
+    this.addEventListener('pointermove', this.handleSwipeBackPointerMove, { passive: false });
+    this.addEventListener('pointerup', this.handleSwipeBackPointerEnd);
+    this.addEventListener('pointercancel', this.handleSwipeBackPointerCancel);
+    this.swipeBackListenersActive = true;
+  }
+
+  private removeSwipeBackListeners(): void {
+    if (!this.swipeBackListenersActive) {
+      return;
+    }
+
+    this.removeEventListener('pointerdown', this.handleSwipeBackPointerDown);
+    this.removeEventListener('pointermove', this.handleSwipeBackPointerMove);
+    this.removeEventListener('pointerup', this.handleSwipeBackPointerEnd);
+    this.removeEventListener('pointercancel', this.handleSwipeBackPointerCancel);
+    this.swipeBackListenersActive = false;
+    this.swipeBackPointer = null;
+  }
+
+  private isSwipeBackEnabled(): boolean {
+    const option = this.options.swipeBack ?? 'auto';
+
+    if (option === true) {
+      return true;
+    }
+
+    if (option === false) {
+      return false;
+    }
+
+    return isNativeBackSwipePlatform();
+  }
+
+  private canStartSwipeBack(event: PointerEvent): boolean {
+    if (!this.isSwipeBackEnabled() || this.controller.animating || this.pendingPage || !this.canGoBack) {
+      return false;
+    }
+
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) {
+      return false;
+    }
+
+    if (this.isInteractiveSwipeTarget(event.target) || this.hasScrollableInlineAncestor(event.target)) {
+      return false;
+    }
+
+    const rect = this.getBoundingClientRect();
+    const startX = event.clientX - rect.left;
+
+    return (
+      startX >= 0 && startX <= this.swipeBackEdgeWidth && event.clientY >= rect.top && event.clientY <= rect.bottom
+    );
+  }
+
+  private isInteractiveSwipeTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest('a, button, input, textarea, select, option, [contenteditable="true"], [data-swipe-back-ignore]'),
+    );
+  }
+
+  private hasScrollableInlineAncestor(target: EventTarget | null): boolean {
+    let element = target instanceof Element ? target : null;
+
+    while (element && element !== this) {
+      if (element instanceof HTMLElement) {
+        const style = getComputedStyle(element);
+        const canScrollInline = /(auto|scroll)/.test(style.overflowX) && element.scrollWidth > element.clientWidth + 1;
+
+        if (canScrollInline && element.scrollLeft > 0) {
+          return true;
+        }
+      }
+
+      element = element.parentElement;
+    }
+
+    return false;
+  }
+
+  private handleSwipeBackPointerDown = (event: PointerEvent): void => {
+    if (!this.canStartSwipeBack(event)) {
+      return;
+    }
+
+    this.swipeBackPointer = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      currentX: event.clientX,
+      currentY: event.clientY,
+      startTime: performance.now(),
+      dragging: false,
+    };
+
+    try {
+      this.setPointerCapture(event.pointerId);
+    } catch {
+      // Some WebViews can throw if capture is unavailable for this pointer.
+    }
+  };
+
+  private handleSwipeBackPointerMove = (event: PointerEvent): void => {
+    const pointer = this.swipeBackPointer;
+    if (!pointer || pointer.pointerId !== event.pointerId) {
+      return;
+    }
+
+    pointer.currentX = event.clientX;
+    pointer.currentY = event.clientY;
+
+    const deltaX = pointer.currentX - pointer.startX;
+    const deltaY = pointer.currentY - pointer.startY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (!pointer.dragging && absY > 12 && absY > absX) {
+      this.cancelSwipeBackPointer(event.pointerId);
+      return;
+    }
+
+    if (deltaX < -8) {
+      this.cancelSwipeBackPointer(event.pointerId);
+      return;
+    }
+
+    if (deltaX > 8 && absX > absY) {
+      pointer.dragging = true;
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+    }
+  };
+
+  private handleSwipeBackPointerEnd = (event: PointerEvent): void => {
+    const pointer = this.swipeBackPointer;
+    if (!pointer || pointer.pointerId !== event.pointerId) {
+      return;
+    }
+
+    pointer.currentX = event.clientX;
+    pointer.currentY = event.clientY;
+
+    const deltaX = pointer.currentX - pointer.startX;
+    const deltaY = pointer.currentY - pointer.startY;
+    const elapsed = Math.max(performance.now() - pointer.startTime, 1);
+    const velocityX = deltaX / elapsed;
+    const minDistance = Math.min(this.swipeBackMinimumDistance, this.clientWidth * 0.35);
+    const verticalAllowed = Math.abs(deltaY) <= Math.max(80, Math.abs(deltaX) * 0.8);
+    const shouldCommit =
+      verticalAllowed &&
+      deltaX > 0 &&
+      (deltaX >= minDistance || (deltaX >= 40 && velocityX >= this.swipeBackMinimumVelocity));
+
+    this.cancelSwipeBackPointer(event.pointerId);
+
+    if (shouldCommit) {
+      this.commitSwipeBack(deltaX, deltaY, velocityX);
+    }
+  };
+
+  private handleSwipeBackPointerCancel = (event: PointerEvent): void => {
+    this.cancelSwipeBackPointer(event.pointerId);
+  };
+
+  private cancelSwipeBackPointer(pointerId: number): void {
+    if (this.swipeBackPointer?.pointerId !== pointerId) {
+      return;
+    }
+
+    try {
+      this.releasePointerCapture(pointerId);
+    } catch {
+      // Ignore missing pointer capture.
+    }
+
+    this.swipeBackPointer = null;
+  }
+
+  private commitSwipeBack(deltaX: number, deltaY: number, velocityX: number): void {
+    const platform = detectNativePlatform();
+    const detail: SwipeBackEventDetail = {
+      direction: 'back',
+      platform: platform.platform,
+      native: platform.isNative,
+      deltaX,
+      deltaY,
+      velocityX,
+    };
+    const event = new CustomEvent<SwipeBackEventDetail>('cap-swipe-back', {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      detail,
+    });
+
+    if (!this.dispatchEvent(event)) {
+      return;
+    }
+
+    this.dataset.direction = 'back';
+
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    void this.pop({ direction: 'back' });
   }
 }
 

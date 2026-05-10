@@ -4,7 +4,7 @@
 
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
-import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeBackOption } from '../core/types';
 
 // Ensure web components are registered
 import '../components';
@@ -58,14 +58,16 @@ export function setupRouterOutlet(
     maxCached?: number;
     platform?: 'ios' | 'android' | 'auto';
     duration?: number;
+    swipeBack?: SwipeBackOption;
   } = {},
 ): void {
-  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options;
+  const { keepInDom = true, maxCached = 10, platform = 'auto', duration, swipeBack } = options;
 
   element.setAttribute('platform', platform);
   if (duration) element.setAttribute('duration', String(duration));
   element.setAttribute('keep-in-dom', String(keepInDom));
   element.setAttribute('max-cached', String(maxCached));
+  if (swipeBack !== undefined) element.setAttribute('swipe-back', String(swipeBack));
 }
 
 /**
@@ -120,7 +122,7 @@ export function createTransitionNavigate(
 }
 
 // Re-export types
-export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeBackOption } from '../core/types';
 
 // Export controller for advanced usage
 export { TransitionController } from '../core/transition-controller';

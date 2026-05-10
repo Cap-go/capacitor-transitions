@@ -9,6 +9,12 @@ export type TransitionDirection = 'forward' | 'back' | 'root' | 'none';
 /** Platform-specific animation styles */
 export type TransitionPlatform = 'ios' | 'android' | 'auto';
 
+/** Runtime platform reported by Capacitor when available */
+export type NativePlatform = 'ios' | 'android' | 'web' | 'unknown';
+
+/** Whether edge swipe-back is enabled, disabled, or native-detected */
+export type SwipeBackOption = boolean | 'auto';
+
 /** Which parts of the page to animate */
 export type TransitionTarget = 'header' | 'content' | 'footer' | 'all';
 
@@ -43,6 +49,14 @@ export interface TransitionConfig {
   onComplete?: () => void;
   /** Whether to use View Transitions API when available (default: false) */
   useViewTransitions?: boolean;
+}
+
+/** Capacitor native runtime detection result */
+export interface NativePlatformInfo {
+  /** Platform name from Capacitor.getPlatform() when available */
+  platform: NativePlatform;
+  /** Whether Capacitor reports a native installed app runtime */
+  isNative: boolean;
 }
 
 /** Resolved platform type (excludes 'auto') */
@@ -92,6 +106,22 @@ export interface NavigationEvent {
   to: PageState;
   /** Whether animation should be skipped */
   skipAnimation?: boolean;
+}
+
+/** Details emitted when an edge swipe-back gesture commits */
+export interface SwipeBackEventDetail {
+  /** Direction requested by the gesture */
+  direction: 'back';
+  /** Platform detected from Capacitor at gesture time */
+  platform: NativePlatform;
+  /** Whether Capacitor reports a native installed app runtime */
+  native: boolean;
+  /** Horizontal gesture distance in CSS pixels */
+  deltaX: number;
+  /** Vertical gesture distance in CSS pixels */
+  deltaY: number;
+  /** Horizontal velocity in CSS pixels per millisecond */
+  velocityX: number;
 }
 
 /** Lifecycle hooks for page transitions */
@@ -148,6 +178,8 @@ export interface RouterOutletOptions {
   animation?: AnimationBuilder;
   /** Transition configuration */
   transition?: TransitionConfig;
+  /** Edge swipe-back gesture support (default: 'auto', native iOS only) */
+  swipeBack?: SwipeBackOption;
 }
 
 /** Page component options */

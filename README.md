@@ -11,6 +11,7 @@ Framework-agnostic page transitions for Capacitor apps. iOS-style navigation wit
 - **No Design Opinions** - Just transition logic, you bring your own styles
 - **Coordinated Transitions** - Header, content, and footer animate together
 - **Page Caching** - Keep pages in DOM for instant back navigation
+- **Native iOS Swipe Back** - Optional edge-swipe back gesture with Capacitor native runtime detection
 - **Lifecycle Hooks** - willEnter, didEnter, willLeave, didLeave events
 
 ## Compatibility
@@ -76,7 +77,7 @@ function App() {
 
   useEffect(() => {
     if (outletRef.current) {
-      setupRouterOutlet(outletRef.current, { platform: 'auto' });
+      setupRouterOutlet(outletRef.current, { platform: 'auto', swipeBack: 'auto' });
     }
   }, []);
 
@@ -290,18 +291,26 @@ export class HomeComponent {
 
 Container for page transitions.
 
-| Attribute     | Type                           | Default          | Description                             |
-| ------------- | ------------------------------ | ---------------- | --------------------------------------- |
-| `platform`    | `'ios' \| 'android' \| 'auto'` | `'auto'`         | Animation style                         |
-| `duration`    | `number`                       | Platform default | Animation duration in ms                |
-| `keep-in-dom` | `boolean`                      | `true`           | Keep pages in DOM after navigating away |
-| `max-cached`  | `number`                       | `10`             | Maximum pages to keep cached            |
+| Attribute     | Type                           | Default          | Description                                                                |
+| ------------- | ------------------------------ | ---------------- | -------------------------------------------------------------------------- |
+| `platform`    | `'ios' \| 'android' \| 'auto'` | `'auto'`         | Animation style                                                            |
+| `duration`    | `number`                       | Platform default | Animation duration in ms                                                   |
+| `keep-in-dom` | `boolean`                      | `true`           | Keep pages in DOM after navigating away                                    |
+| `max-cached`  | `number`                       | `10`             | Maximum pages to keep cached                                               |
+| `swipe-back`  | `boolean \| 'auto'`            | `'auto'`         | Enable edge swipe-back. `'auto'` enables only in native iOS Capacitor apps |
 
 Methods:
 
 - `push(element, config?)` - Navigate forward to new page
 - `pop(config?)` - Navigate back
 - `setRoot(element, config?)` - Replace navigation stack
+- `setSwipeBack(true | false | 'auto')` - Enable, disable, or native-detect edge swipe-back
+
+Events:
+
+- `cap-swipe-back` - Fired when an edge swipe-back gesture commits. The event is cancelable; call `event.preventDefault()` and perform your own router back action to override the default `window.history.back()` fallback.
+
+`swipe-back="auto"` uses Capacitor's runtime helpers (`Capacitor.isNativePlatform()` and `Capacitor.getPlatform()`) and enables the gesture only for native iOS apps. Use `swipe-back="true"` to force it on any platform or `swipe-back="false"` to disable it.
 
 #### `<cap-page>`
 
@@ -354,6 +363,19 @@ setDirection('forward' | 'back' | 'root' | 'none');
 
 // Set up a router outlet element
 setupRouterOutlet(element, options);
+
+// Enable native-detected iOS edge swipe-back (default)
+setupRouterOutlet(element, { swipeBack: 'auto' });
+
+// Force enable or disable from JavaScript
+setupRouterOutlet(element, { swipeBack: true });
+setupRouterOutlet(element, { swipeBack: false });
+
+// Override the default back behavior
+element.addEventListener('cap-swipe-back', (event) => {
+  event.preventDefault();
+  router.back();
+});
 
 // Set up a page element with lifecycle callbacks (returns cleanup function)
 setupPage(element, { onWillEnter, onDidEnter, onWillLeave, onDidLeave });

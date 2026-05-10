@@ -27,9 +27,6 @@ export class CapContent extends HTMLElement {
     this.style.overflow = 'auto';
     this.style.overscrollBehavior = 'contain';
 
-    // For view transitions API
-    this.style.viewTransitionName = 'cap-content';
-
     // iOS-style momentum scrolling
     // @ts-expect-error vendor prefix
     this.style.webkitOverflowScrolling = 'touch';

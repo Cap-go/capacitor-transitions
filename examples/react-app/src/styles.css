@@ -12,6 +12,10 @@ html, body, #root {
   background: #f5f5f7;
 }
 
+cap-page {
+  --cap-page-background: #f5f5f7;
+}
+
 /* Toolbar styles */
 .toolbar {
   display: flex;

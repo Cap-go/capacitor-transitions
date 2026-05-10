@@ -9,9 +9,8 @@ import {
   cancelAnimations,
   getDefaultDuration,
   getDefaultEasing,
+  resolveEasing,
   detectPlatform,
-  createHeaderTransition,
-  createFooterTransition,
 } from './animations';
 import type {
   TransitionConfig,
@@ -35,7 +34,7 @@ const DEFAULT_CONFIG: Required<TransitionGlobalConfig> = {
   platform: 'auto',
   duration: 0, // Will use platform default
   easing: '', // Will use platform default
-  useViewTransitions: true,
+  useViewTransitions: false,
   detectPlatform,
 };
 
@@ -98,6 +97,9 @@ export class TransitionController {
    */
   configure(config: Partial<TransitionGlobalConfig>): void {
     this.config = { ...this.config, ...config };
+    if (this.config.useViewTransitions && supportsViewTransitions()) {
+      injectViewTransitionsCSS();
+    }
   }
 
   /**
@@ -186,9 +188,15 @@ export class TransitionController {
         // Clear the stack and set new root
         this.pageStack = [enteringState];
       } else if (direction === 'back' && this.pageStack.length > 0) {
-        // Router-driven back navigation should replace the current page entry
-        // instead of pushing a new one, otherwise the stack drifts over time.
+        // Routers usually create a fresh element for the destination route.
+        // Drop both the leaving page and the stale cached destination so the
+        // internal stack mirrors the visible route stack.
         this.pageStack.pop();
+        const staleEnteringState = this.pageStack.pop();
+        if (staleEnteringState && staleEnteringState.element !== enteringState.element) {
+          staleEnteringState.element.remove();
+          this.lifecycleCallbacks.delete(staleEnteringState.id);
+        }
         this.pageStack.push(enteringState);
       } else {
         // Push new page onto stack
@@ -235,12 +243,8 @@ export class TransitionController {
       await enteringLifecycle?.onWillEnter?.(event);
 
       // Determine animation parameters
-      const duration = config.duration || this.config.duration || getDefaultDuration(this.platform);
-      const easing = config.easing
-        ? typeof config.easing === 'string' && ['ios', 'android'].includes(config.easing)
-          ? getDefaultEasing(config.easing as 'ios' | 'android')
-          : config.easing
-        : this.config.easing || getDefaultEasing(this.platform);
+      const duration = config.duration || this.config.duration || getDefaultDuration(this.platform, direction);
+      const easing = this.resolveTransitionEasing(config.easing || this.config.easing, direction);
 
       // Check if we should use View Transitions API
       const useViewTransitions =
@@ -276,26 +280,6 @@ export class TransitionController {
 
         // Create main content animations
         this.currentAnimations = createTransition(animOptions, this.platform);
-
-        // Create header animations if headers exist
-        if (enteringState.header || leavingState?.header) {
-          const headerAnims = createHeaderTransition({
-            ...animOptions,
-            enteringHeader: enteringState.header,
-            leavingHeader: leavingState?.header,
-          });
-          this.currentAnimations.push(...headerAnims);
-        }
-
-        // Create footer animations if footers exist
-        if (enteringState.footer || leavingState?.footer) {
-          const footerAnims = createFooterTransition({
-            ...animOptions,
-            enteringFooter: enteringState.footer,
-            leavingFooter: leavingState?.footer,
-          });
-          this.currentAnimations.push(...footerAnims);
-        }
 
         // Wait for animations
         await waitForAnimations(this.currentAnimations);
@@ -342,12 +326,46 @@ export class TransitionController {
     enteringState.element.style.opacity = '1';
     enteringState.element.style.transform = 'none';
     enteringState.element.style.position = 'relative';
+    this.clearTransitionOnlyStyles(enteringState.element);
 
     // Hide leaving page but keep in DOM
     if (leavingState) {
       leavingState.element.style.display = 'none';
       leavingState.element.style.visibility = 'hidden';
+      leavingState.element.style.opacity = '1';
+      leavingState.element.style.transform = 'none';
+      this.clearTransitionOnlyStyles(leavingState.element);
     }
+  }
+
+  /**
+   * Resolve configured easing presets after platform/direction are known.
+   */
+  private resolveTransitionEasing(
+    easing: TransitionGlobalConfig['easing'],
+    direction: TransitionConfig['direction'],
+  ): string {
+    if (!easing) {
+      return getDefaultEasing(this.platform, direction || 'forward');
+    }
+
+    if (typeof easing === 'string' && ['ios', 'android'].includes(easing)) {
+      return getDefaultEasing(easing as 'ios' | 'android', direction || 'forward');
+    }
+
+    return resolveEasing(easing);
+  }
+
+  /**
+   * Remove styles that should only exist while a page is actively transitioning.
+   */
+  private clearTransitionOnlyStyles(element: HTMLElement): void {
+    element.style.removeProperty('z-index');
+    element.style.removeProperty('pointer-events');
+    element.style.removeProperty('will-change');
+    element.style.removeProperty('backface-visibility');
+    element.style.removeProperty('transform-style');
+    element.style.removeProperty('box-shadow');
   }
 
   /**

@@ -7,7 +7,7 @@ Framework-agnostic page transitions for Capacitor apps. iOS-style navigation wit
 - **Framework Agnostic** - Works with React, Vue, Angular, Svelte, Solid, and any other framework
 - **iOS & Android Animations** - Platform-appropriate transitions out of the box
 - **Web Animations API** - Smooth, GPU-accelerated animations
-- **View Transitions API** - Progressive enhancement for supporting browsers
+- **View Transitions API** - Optional progressive enhancement for supporting browsers
 - **No Design Opinions** - Just transition logic, you bring your own styles
 - **Coordinated Transitions** - Header, content, and footer animate together
 - **Page Caching** - Keep pages in DOM for instant back navigation
@@ -393,14 +393,14 @@ controller.registerLifecycle('page-id', {
 ## Browser Support
 
 - Modern browsers with Web Animations API support
-- View Transitions API (Chrome 111+, Edge 111+, Safari 18+) for enhanced transitions
+- Optional View Transitions API (Chrome 111+, Edge 111+, Safari 18+) support
 - Graceful fallback for older browsers
 
 ## Design Philosophy
 
 This library is intentionally unopinionated about styling:
 
-1. **No CSS included** - You bring your own styles
+1. **Minimal structural CSS** - You bring your own visual system
 2. **No design system** - Works with any UI library or custom styles
 3. **Just transitions** - Focus on smooth page navigation
 4. **Framework agnostic** - Use with React, Vue, Angular, Svelte, Solid, or vanilla JS
@@ -421,6 +421,8 @@ See the `/examples` directory for complete examples:
 ### React Example
 
 The React example demonstrates iOS-style page transitions with smooth animations:
+
+<video src="./docs/react-transition-demo.mp4" width="300" controls muted playsinline></video>
 
 <table>
   <tr>

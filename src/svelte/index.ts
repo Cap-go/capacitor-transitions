@@ -88,6 +88,8 @@ export function routerOutlet(
       }
       if (newOptions.swipeBack !== undefined) {
         node.setAttribute('swipe-back', String(newOptions.swipeBack));
+      } else {
+        node.removeAttribute('swipe-back');
       }
     },
     destroy(): void {

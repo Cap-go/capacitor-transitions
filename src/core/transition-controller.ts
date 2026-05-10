@@ -38,6 +38,13 @@ const DEFAULT_CONFIG: Required<TransitionGlobalConfig> = {
   detectPlatform,
 };
 
+interface InteractiveBackTransition {
+  enteringState: PageState;
+  leavingState: PageState;
+  animations: Animation[];
+  duration: number;
+}
+
 /**
  * Transition Controller
  * Central manager for all page transitions
@@ -47,6 +54,7 @@ export class TransitionController {
   private pageStack: PageState[] = [];
   private currentAnimations: Animation[] = [];
   private isAnimating = false;
+  private interactiveBackTransition: InteractiveBackTransition | null = null;
   private lifecycleCallbacks: Map<string, TransitionLifecycle> = new Map();
 
   constructor(config: TransitionGlobalConfig = {}) {
@@ -169,6 +177,113 @@ export class TransitionController {
   }
 
   /**
+   * Start an interactive iOS-style back transition using the cached previous page.
+   */
+  beginInteractiveBack(config: TransitionConfig = {}): boolean {
+    if (this.pageStack.length <= 1 || this.isAnimating || this.interactiveBackTransition) {
+      return false;
+    }
+
+    const leavingState = this.pageStack[this.pageStack.length - 1];
+    const enteringState = this.pageStack[this.pageStack.length - 2];
+    const direction = 'back';
+    const duration = config.duration ?? (this.config.duration || getDefaultDuration(this.platform, direction));
+
+    this.isAnimating = true;
+    enteringState.element.style.display = '';
+    enteringState.element.style.visibility = 'visible';
+
+    const animOptions: TransitionAnimationOptions = {
+      enteringEl: enteringState.element,
+      leavingEl: leavingState.element,
+      direction,
+      duration,
+      easing: 'linear',
+      isBack: true,
+    };
+
+    const animations = createTransition(animOptions, this.platform);
+    for (const animation of animations) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
+
+    this.currentAnimations = animations;
+    this.interactiveBackTransition = {
+      enteringState,
+      leavingState,
+      animations,
+      duration,
+    };
+
+    return true;
+  }
+
+  /**
+   * Move the current interactive back transition to a progress step from 0 to 1.
+   */
+  stepInteractiveBack(step: number): void {
+    const transition = this.interactiveBackTransition;
+    if (!transition) {
+      return;
+    }
+
+    const progress = Math.max(0, Math.min(step, 0.9999));
+    for (const animation of transition.animations) {
+      const duration = this.getAnimationDuration(animation, transition.duration);
+      animation.pause();
+      animation.currentTime = duration * progress;
+    }
+  }
+
+  /**
+   * Complete or cancel the current interactive back transition.
+   */
+  async endInteractiveBack(shouldComplete: boolean, releaseDuration: number, commitStack: boolean): Promise<void> {
+    const transition = this.interactiveBackTransition;
+    if (!transition) {
+      return;
+    }
+
+    try {
+      await this.playInteractiveAnimationsTo(shouldComplete ? 1 : 0, releaseDuration);
+
+      if (shouldComplete && commitStack) {
+        this.pageStack.pop();
+        this.updatePageVisibility(transition.enteringState, transition.leavingState);
+        transition.enteringState.isActive = true;
+        transition.leavingState.isActive = false;
+        cancelAnimations(transition.animations);
+      } else if (!shouldComplete) {
+        this.updatePageVisibility(transition.leavingState, transition.enteringState);
+        transition.leavingState.isActive = true;
+        transition.enteringState.isActive = false;
+        cancelAnimations(transition.animations);
+      }
+    } finally {
+      this.interactiveBackTransition = null;
+      this.currentAnimations = [];
+      this.isAnimating = false;
+    }
+  }
+
+  /**
+   * Cancel the current interactive back transition immediately.
+   */
+  cancelInteractiveBack(): void {
+    const transition = this.interactiveBackTransition;
+    if (!transition) {
+      return;
+    }
+
+    cancelAnimations(transition.animations);
+    this.updatePageVisibility(transition.leavingState, transition.enteringState);
+    this.interactiveBackTransition = null;
+    this.currentAnimations = [];
+    this.isAnimating = false;
+  }
+
+  /**
    * Replace all pages with a new root
    */
   async setRoot(enteringEl: HTMLElement, config: TransitionConfig = {}): Promise<TransitionResult> {
@@ -243,7 +358,7 @@ export class TransitionController {
       await enteringLifecycle?.onWillEnter?.(event);
 
       // Determine animation parameters
-      const duration = config.duration || this.config.duration || getDefaultDuration(this.platform, direction);
+      const duration = config.duration ?? (this.config.duration || getDefaultDuration(this.platform, direction));
       const easing = this.resolveTransitionEasing(config.easing || this.config.easing, direction);
 
       // Check if we should use View Transitions API
@@ -339,6 +454,46 @@ export class TransitionController {
       this.clearTransitionOnlyStyles(leavingState.element);
       this.clearPagePartTransitionStyles(leavingState);
     }
+  }
+
+  private getAnimationDuration(animation: Animation, fallback: number): number {
+    const duration = animation.effect?.getTiming().duration;
+    return typeof duration === 'number' && Number.isFinite(duration) ? duration : fallback;
+  }
+
+  private async playInteractiveAnimationsTo(targetProgress: 0 | 1, releaseDuration: number): Promise<void> {
+    const transition = this.interactiveBackTransition;
+    if (!transition) {
+      return;
+    }
+
+    if (releaseDuration <= 0) {
+      for (const animation of transition.animations) {
+        const duration = this.getAnimationDuration(animation, transition.duration);
+        animation.pause();
+        animation.currentTime = duration * targetProgress;
+      }
+      return;
+    }
+
+    const finished = transition.animations.map((animation) => {
+      const duration = this.getAnimationDuration(animation, transition.duration);
+      const currentTime = typeof animation.currentTime === 'number' ? animation.currentTime : 0;
+      const targetTime = duration * targetProgress;
+      const distance = Math.abs(targetTime - currentTime);
+
+      if (distance < 1) {
+        animation.currentTime = targetTime;
+        return Promise.resolve();
+      }
+
+      animation.playbackRate = Math.max(distance / releaseDuration, 0.001) * (targetTime >= currentTime ? 1 : -1);
+      animation.play();
+
+      return animation.finished.catch(() => undefined);
+    });
+
+    await Promise.all(finished);
   }
 
   /**

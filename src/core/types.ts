@@ -12,8 +12,8 @@ export type TransitionPlatform = 'ios' | 'android' | 'auto';
 /** Runtime platform reported by Capacitor when available */
 export type NativePlatform = 'ios' | 'android' | 'web' | 'unknown';
 
-/** Whether edge swipe-back is enabled, disabled, or native-detected */
-export type SwipeBackOption = boolean | 'auto';
+/** Whether the edge swipe-back gesture is enabled, disabled, or native-detected */
+export type SwipeGestureOption = boolean | 'auto';
 
 /** Which parts of the page to animate */
 export type TransitionTarget = 'header' | 'content' | 'footer' | 'all';
@@ -108,22 +108,6 @@ export interface NavigationEvent {
   skipAnimation?: boolean;
 }
 
-/** Details emitted when an edge swipe-back gesture commits */
-export interface SwipeBackEventDetail {
-  /** Direction requested by the gesture */
-  direction: 'back';
-  /** Platform detected from Capacitor at gesture time */
-  platform: NativePlatform;
-  /** Whether Capacitor reports a native installed app runtime */
-  native: boolean;
-  /** Horizontal gesture distance in CSS pixels */
-  deltaX: number;
-  /** Vertical gesture distance in CSS pixels */
-  deltaY: number;
-  /** Horizontal velocity in CSS pixels per millisecond */
-  velocityX: number;
-}
-
 /** Lifecycle hooks for page transitions */
 export interface TransitionLifecycle {
   /** Called before the page becomes visible (before animation) */
@@ -179,7 +163,7 @@ export interface RouterOutletOptions {
   /** Transition configuration */
   transition?: TransitionConfig;
   /** Edge swipe-back gesture support (default: 'auto', native iOS only) */
-  swipeBack?: SwipeBackOption;
+  swipeGesture?: SwipeGestureOption;
 }
 
 /** Page component options */

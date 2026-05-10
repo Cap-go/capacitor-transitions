@@ -28,7 +28,7 @@ export function detectNativePlatform(): NativePlatformInfo {
   };
 }
 
-export function isNativeBackSwipePlatform(): boolean {
+export function isNativeSwipeGesturePlatform(): boolean {
   const { platform, isNative } = detectNativePlatform();
 
   return isNative && platform === 'ios';

@@ -24,8 +24,7 @@ export type {
   TransitionGlobalConfig,
   NativePlatform,
   NativePlatformInfo,
-  SwipeBackOption,
-  SwipeBackEventDetail,
+  SwipeGestureOption,
   PageState,
   NavigationEvent,
   TransitionLifecycle,
@@ -67,7 +66,7 @@ export {
 } from './core/view-transitions';
 
 // Native runtime detection
-export { detectNativePlatform, isNativeBackSwipePlatform } from './core/native-platform';
+export { detectNativePlatform, isNativeSwipeGesturePlatform } from './core/native-platform';
 
 // Transition controller
 export {

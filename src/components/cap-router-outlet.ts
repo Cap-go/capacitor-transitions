@@ -4,7 +4,7 @@
  * Works with any framework's router
  */
 
-import { detectNativePlatform, isNativeBackSwipePlatform } from '../core/native-platform';
+import { isNativeSwipeGesturePlatform } from '../core/native-platform';
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
 import type {
@@ -12,8 +12,7 @@ import type {
   TransitionGlobalConfig,
   TransitionDirection,
   PageState,
-  SwipeBackOption,
-  SwipeBackEventDetail,
+  SwipeGestureOption,
 } from '../core/types';
 
 export interface CapRouterOutletOptions extends TransitionGlobalConfig {
@@ -22,10 +21,10 @@ export interface CapRouterOutletOptions extends TransitionGlobalConfig {
   /** Maximum cached pages */
   maxCached?: number;
   /** Edge swipe-back gesture support */
-  swipeBack?: SwipeBackOption;
+  swipeGesture?: SwipeGestureOption;
 }
 
-interface SwipeBackPointerState {
+interface SwipeGesturePointerState {
   pointerId: number;
   startX: number;
   startY: number;
@@ -33,6 +32,7 @@ interface SwipeBackPointerState {
   currentY: number;
   startTime: number;
   dragging: boolean;
+  transitionStarted: boolean;
 }
 
 /**
@@ -45,15 +45,16 @@ export class CapRouterOutlet extends HTMLElement {
   private observer: MutationObserver | null = null;
   private pendingPage: HTMLElement | null = null;
   private ignoredNodes = new WeakSet<HTMLElement>();
-  private swipeBackPointer: SwipeBackPointerState | null = null;
-  private swipeBackListenersActive = false;
+  private swipeGesturePointer: SwipeGesturePointerState | null = null;
+  private swipeGestureListenersActive = false;
+  private skipNextHistoryBackTransition = false;
 
-  private readonly swipeBackEdgeWidth = 32;
-  private readonly swipeBackMinimumDistance = 72;
-  private readonly swipeBackMinimumVelocity = 0.45;
+  private readonly swipeGestureEdgeWidth = 50;
+  private readonly swipeGestureThreshold = 10;
+  private readonly swipeGestureMinimumVelocity = 0.2;
 
   static get observedAttributes(): string[] {
-    return ['platform', 'duration', 'keep-in-dom', 'max-cached', 'swipe-back'];
+    return ['platform', 'duration', 'keep-in-dom', 'max-cached', 'swipe-gesture'];
   }
 
   constructor() {
@@ -62,7 +63,7 @@ export class CapRouterOutlet extends HTMLElement {
     this.options = {
       keepInDom: true,
       maxCached: 10,
-      swipeBack: 'auto',
+      swipeGesture: 'auto',
     };
 
     this.controller = createTransitionController();
@@ -92,12 +93,12 @@ export class CapRouterOutlet extends HTMLElement {
       this.initializeFirstPage(children[children.length - 1]);
     }
 
-    this.updateSwipeBackListeners();
+    this.updateSwipeGestureListeners();
   }
 
   disconnectedCallback(): void {
     this.observer?.disconnect();
-    this.removeSwipeBackListeners();
+    this.removeSwipeGestureListeners();
     this.controller.clear();
   }
 
@@ -115,9 +116,9 @@ export class CapRouterOutlet extends HTMLElement {
       case 'max-cached':
         this.options.maxCached = parseInt(newValue, 10);
         break;
-      case 'swipe-back':
-        this.options.swipeBack = this.parseSwipeBackAttribute(newValue);
-        this.updateSwipeBackListeners();
+      case 'swipe-gesture':
+        this.options.swipeGesture = this.parseSwipeGestureAttribute(newValue);
+        this.updateSwipeGestureListeners();
         break;
     }
   }
@@ -207,6 +208,8 @@ export class CapRouterOutlet extends HTMLElement {
     if (outletDirection) {
       delete this.dataset.direction;
     }
+    const skipTransition = this.skipNextHistoryBackTransition && direction === 'back';
+    this.skipNextHistoryBackTransition = false;
 
     // Set up the page element
     this.stylePageForTransition(page);
@@ -214,7 +217,7 @@ export class CapRouterOutlet extends HTMLElement {
     this.pendingPage = page;
 
     try {
-      await this.controller.navigate(page, { direction });
+      await this.controller.navigate(page, { direction, duration: skipTransition ? 0 : undefined });
     } finally {
       this.pendingPage = null;
     }
@@ -319,30 +322,30 @@ export class CapRouterOutlet extends HTMLElement {
   }
 
   /**
-   * Get whether edge swipe-back is enabled.
+   * Get whether edge swipe-back gesture is enabled.
    */
-  get swipeBack(): SwipeBackOption {
-    return this.options.swipeBack ?? 'auto';
+  get swipeGesture(): SwipeGestureOption {
+    return this.options.swipeGesture ?? 'auto';
   }
 
   /**
-   * Enable, disable, or native-detect edge swipe-back.
+   * Enable, disable, or auto-detect edge swipe-back gesture.
    */
-  set swipeBack(value: SwipeBackOption) {
-    this.setSwipeBack(value);
+  set swipeGesture(value: SwipeGestureOption) {
+    this.setSwipeGesture(value);
   }
 
   /**
-   * Enable, disable, or native-detect edge swipe-back.
+   * Enable, disable, or auto-detect edge swipe-back gesture.
    */
-  setSwipeBack(value: SwipeBackOption): void {
-    this.options.swipeBack = value;
+  setSwipeGesture(value: SwipeGestureOption): void {
+    this.options.swipeGesture = value;
 
-    const serialized = this.serializeSwipeBack(value);
-    if (this.getAttribute('swipe-back') !== serialized) {
-      this.setAttribute('swipe-back', serialized);
+    const serialized = this.serializeSwipeGesture(value);
+    if (this.getAttribute('swipe-gesture') !== serialized) {
+      this.setAttribute('swipe-gesture', serialized);
     } else {
-      this.updateSwipeBackListeners();
+      this.updateSwipeGestureListeners();
     }
   }
 
@@ -364,7 +367,7 @@ export class CapRouterOutlet extends HTMLElement {
     page.style.height = '100%';
   }
 
-  private parseSwipeBackAttribute(value: string | null): SwipeBackOption {
+  private parseSwipeGestureAttribute(value: string | null): SwipeGestureOption {
     if (value === null || value === 'auto') {
       return 'auto';
     }
@@ -376,42 +379,42 @@ export class CapRouterOutlet extends HTMLElement {
     return true;
   }
 
-  private serializeSwipeBack(value: SwipeBackOption): string {
+  private serializeSwipeGesture(value: SwipeGestureOption): string {
     return typeof value === 'boolean' ? String(value) : value;
   }
 
-  private updateSwipeBackListeners(): void {
-    if (this.options.swipeBack === false) {
-      this.removeSwipeBackListeners();
+  private updateSwipeGestureListeners(): void {
+    if (this.options.swipeGesture === false) {
+      this.removeSwipeGestureListeners();
       return;
     }
 
-    if (this.swipeBackListenersActive || typeof PointerEvent === 'undefined') {
+    if (this.swipeGestureListenersActive || typeof PointerEvent === 'undefined') {
       return;
     }
 
-    this.addEventListener('pointerdown', this.handleSwipeBackPointerDown);
-    this.addEventListener('pointermove', this.handleSwipeBackPointerMove, { passive: false });
-    this.addEventListener('pointerup', this.handleSwipeBackPointerEnd);
-    this.addEventListener('pointercancel', this.handleSwipeBackPointerCancel);
-    this.swipeBackListenersActive = true;
+    this.addEventListener('pointerdown', this.handleSwipeGesturePointerDown);
+    this.addEventListener('pointermove', this.handleSwipeGesturePointerMove, { passive: false });
+    this.addEventListener('pointerup', this.handleSwipeGesturePointerEnd);
+    this.addEventListener('pointercancel', this.handleSwipeGesturePointerCancel);
+    this.swipeGestureListenersActive = true;
   }
 
-  private removeSwipeBackListeners(): void {
-    if (!this.swipeBackListenersActive) {
+  private removeSwipeGestureListeners(): void {
+    if (!this.swipeGestureListenersActive) {
       return;
     }
 
-    this.removeEventListener('pointerdown', this.handleSwipeBackPointerDown);
-    this.removeEventListener('pointermove', this.handleSwipeBackPointerMove);
-    this.removeEventListener('pointerup', this.handleSwipeBackPointerEnd);
-    this.removeEventListener('pointercancel', this.handleSwipeBackPointerCancel);
-    this.swipeBackListenersActive = false;
-    this.swipeBackPointer = null;
+    this.removeEventListener('pointerdown', this.handleSwipeGesturePointerDown);
+    this.removeEventListener('pointermove', this.handleSwipeGesturePointerMove);
+    this.removeEventListener('pointerup', this.handleSwipeGesturePointerEnd);
+    this.removeEventListener('pointercancel', this.handleSwipeGesturePointerCancel);
+    this.swipeGestureListenersActive = false;
+    this.swipeGesturePointer = null;
   }
 
-  private isSwipeBackEnabled(): boolean {
-    const option = this.options.swipeBack ?? 'auto';
+  private isSwipeGestureEnabled(): boolean {
+    const option = this.options.swipeGesture ?? 'auto';
 
     if (option === true) {
       return true;
@@ -421,11 +424,11 @@ export class CapRouterOutlet extends HTMLElement {
       return false;
     }
 
-    return isNativeBackSwipePlatform();
+    return isNativeSwipeGesturePlatform();
   }
 
-  private canStartSwipeBack(event: PointerEvent): boolean {
-    if (!this.isSwipeBackEnabled() || this.controller.animating || this.pendingPage || !this.canGoBack) {
+  private canStartSwipeGesture(event: PointerEvent): boolean {
+    if (!this.isSwipeGestureEnabled() || this.controller.animating || this.pendingPage || !this.canGoBack) {
       return false;
     }
 
@@ -440,9 +443,21 @@ export class CapRouterOutlet extends HTMLElement {
     const rect = this.getBoundingClientRect();
     const startX = event.clientX - rect.left;
 
-    return (
-      startX >= 0 && startX <= this.swipeBackEdgeWidth && event.clientY >= rect.top && event.clientY <= rect.bottom
-    );
+    if (event.clientY < rect.top || event.clientY > rect.bottom) {
+      return false;
+    }
+
+    return this.isRTL() ? startX >= rect.width - this.swipeGestureEdgeWidth : startX <= this.swipeGestureEdgeWidth;
+  }
+
+  private isRTL(): boolean {
+    const doc = this.ownerDocument;
+    return doc.dir === 'rtl' || doc.documentElement.dir === 'rtl' || getComputedStyle(this).direction === 'rtl';
+  }
+
+  private getSwipeGestureDeltaX(pointer: SwipeGesturePointerState): number {
+    const deltaX = pointer.currentX - pointer.startX;
+    return this.isRTL() ? -deltaX : deltaX;
   }
 
   private isInteractiveSwipeTarget(target: EventTarget | null): boolean {
@@ -451,7 +466,9 @@ export class CapRouterOutlet extends HTMLElement {
     }
 
     return Boolean(
-      target.closest('a, button, input, textarea, select, option, [contenteditable="true"], [data-swipe-back-ignore]'),
+      target.closest(
+        'a, button, input, textarea, select, option, [contenteditable="true"], [data-swipe-gesture-ignore], [data-swipe-back-ignore]',
+      ),
     );
   }
 
@@ -474,12 +491,12 @@ export class CapRouterOutlet extends HTMLElement {
     return false;
   }
 
-  private handleSwipeBackPointerDown = (event: PointerEvent): void => {
-    if (!this.canStartSwipeBack(event)) {
+  private handleSwipeGesturePointerDown = (event: PointerEvent): void => {
+    if (!this.canStartSwipeGesture(event)) {
       return;
     }
 
-    this.swipeBackPointer = {
+    this.swipeGesturePointer = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
@@ -487,6 +504,7 @@ export class CapRouterOutlet extends HTMLElement {
       currentY: event.clientY,
       startTime: performance.now(),
       dragging: false,
+      transitionStarted: false,
     };
 
     try {
@@ -496,8 +514,8 @@ export class CapRouterOutlet extends HTMLElement {
     }
   };
 
-  private handleSwipeBackPointerMove = (event: PointerEvent): void => {
-    const pointer = this.swipeBackPointer;
+  private handleSwipeGesturePointerMove = (event: PointerEvent): void => {
+    const pointer = this.swipeGesturePointer;
     if (!pointer || pointer.pointerId !== event.pointerId) {
       return;
     }
@@ -505,31 +523,40 @@ export class CapRouterOutlet extends HTMLElement {
     pointer.currentX = event.clientX;
     pointer.currentY = event.clientY;
 
-    const deltaX = pointer.currentX - pointer.startX;
+    const deltaX = this.getSwipeGestureDeltaX(pointer);
     const deltaY = pointer.currentY - pointer.startY;
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
 
     if (!pointer.dragging && absY > 12 && absY > absX) {
-      this.cancelSwipeBackPointer(event.pointerId);
+      this.cancelSwipeGesturePointer(event.pointerId);
       return;
     }
 
-    if (deltaX < -8) {
-      this.cancelSwipeBackPointer(event.pointerId);
+    if (deltaX < -this.swipeGestureThreshold) {
+      this.cancelSwipeGesture(event.pointerId);
       return;
     }
 
-    if (deltaX > 8 && absX > absY) {
+    if (!pointer.dragging && deltaX > this.swipeGestureThreshold && absX > absY) {
       pointer.dragging = true;
-      if (event.cancelable) {
-        event.preventDefault();
+      pointer.transitionStarted = this.controller.beginInteractiveBack({ direction: 'back' });
+
+      if (!pointer.transitionStarted) {
+        this.cancelSwipeGesturePointer(event.pointerId);
+        return;
       }
+    }
+
+    if (pointer.dragging && pointer.transitionStarted) {
+      if (event.cancelable) event.preventDefault();
+      const width = Math.max(this.getBoundingClientRect().width, 1);
+      this.controller.stepInteractiveBack(deltaX / width);
     }
   };
 
-  private handleSwipeBackPointerEnd = (event: PointerEvent): void => {
-    const pointer = this.swipeBackPointer;
+  private handleSwipeGesturePointerEnd = (event: PointerEvent): void => {
+    const pointer = this.swipeGesturePointer;
     if (!pointer || pointer.pointerId !== event.pointerId) {
       return;
     }
@@ -537,30 +564,36 @@ export class CapRouterOutlet extends HTMLElement {
     pointer.currentX = event.clientX;
     pointer.currentY = event.clientY;
 
-    const deltaX = pointer.currentX - pointer.startX;
-    const deltaY = pointer.currentY - pointer.startY;
+    const deltaX = this.getSwipeGestureDeltaX(pointer);
     const elapsed = Math.max(performance.now() - pointer.startTime, 1);
     const velocityX = deltaX / elapsed;
-    const minDistance = Math.min(this.swipeBackMinimumDistance, this.clientWidth * 0.35);
-    const verticalAllowed = Math.abs(deltaY) <= Math.max(80, Math.abs(deltaX) * 0.8);
+    const width = Math.max(this.getBoundingClientRect().width, 1);
+    const step = deltaX / width;
     const shouldCommit =
-      verticalAllowed &&
-      deltaX > 0 &&
-      (deltaX >= minDistance || (deltaX >= 40 && velocityX >= this.swipeBackMinimumVelocity));
+      pointer.dragging &&
+      pointer.transitionStarted &&
+      velocityX >= 0 &&
+      (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+    const missing = shouldCommit ? 1 - step : step;
+    const missingDistance = Math.max(missing, 0) * width;
+    const releaseDuration =
+      missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
 
-    this.cancelSwipeBackPointer(event.pointerId);
+    this.releaseSwipeGesturePointer(event.pointerId);
 
-    if (shouldCommit) {
-      this.commitSwipeBack(deltaX, deltaY, velocityX);
-    }
+    void this.finishSwipeGestureBack(shouldCommit, releaseDuration);
   };
 
-  private handleSwipeBackPointerCancel = (event: PointerEvent): void => {
-    this.cancelSwipeBackPointer(event.pointerId);
+  private handleSwipeGesturePointerCancel = (event: PointerEvent): void => {
+    this.cancelSwipeGesture(event.pointerId);
   };
 
-  private cancelSwipeBackPointer(pointerId: number): void {
-    if (this.swipeBackPointer?.pointerId !== pointerId) {
+  private cancelSwipeGesturePointer(pointerId: number): void {
+    this.releaseSwipeGesturePointer(pointerId);
+  }
+
+  private releaseSwipeGesturePointer(pointerId: number): void {
+    if (this.swipeGesturePointer?.pointerId !== pointerId) {
       return;
     }
 
@@ -570,38 +603,41 @@ export class CapRouterOutlet extends HTMLElement {
       // Ignore missing pointer capture.
     }
 
-    this.swipeBackPointer = null;
+    this.swipeGesturePointer = null;
   }
 
-  private commitSwipeBack(deltaX: number, deltaY: number, velocityX: number): void {
-    const platform = detectNativePlatform();
-    const detail: SwipeBackEventDetail = {
-      direction: 'back',
-      platform: platform.platform,
-      native: platform.isNative,
-      deltaX,
-      deltaY,
-      velocityX,
-    };
-    const event = new CustomEvent<SwipeBackEventDetail>('cap-swipe-back', {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      detail,
-    });
-
-    if (!this.dispatchEvent(event)) {
+  private cancelSwipeGesture(pointerId: number): void {
+    const pointer = this.swipeGesturePointer;
+    if (!pointer || pointer.pointerId !== pointerId) {
       return;
     }
 
-    this.dataset.direction = 'back';
+    this.releaseSwipeGesturePointer(pointerId);
 
-    if (typeof window !== 'undefined' && window.history.length > 1) {
+    if (pointer.transitionStarted) {
+      void this.finishSwipeGestureBack(false, 0);
+    }
+  }
+
+  private async finishSwipeGestureBack(shouldComplete: boolean, releaseDuration: number): Promise<void> {
+    const shouldUseHistory = shouldComplete && typeof window !== 'undefined' && window.history.length > 1;
+
+    await this.controller.endInteractiveBack(shouldComplete, releaseDuration, !shouldUseHistory);
+
+    if (!shouldComplete) {
+      return;
+    }
+
+    if (shouldUseHistory) {
+      this.skipNextHistoryBackTransition = true;
+      this.dataset.direction = 'back';
       window.history.back();
       return;
     }
 
-    void this.pop({ direction: 'back' });
+    if (!this.options.keepInDom) {
+      this.cleanupOldPages();
+    }
   }
 }
 

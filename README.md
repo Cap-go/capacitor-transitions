@@ -422,7 +422,7 @@ See the `/examples` directory for complete examples:
 
 The React example demonstrates iOS-style page transitions with smooth animations:
 
-<video src="./docs/react-transition-demo.mp4" width="300" controls muted playsinline></video>
+<img src="./docs/react-transition-demo.webp" width="300" alt="React transition demo" />
 
 <table>
   <tr>

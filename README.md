@@ -331,6 +331,7 @@ Drive both packages from the same router actions:
 ```typescript
 import { NativeNavigation } from '@capgo/native-navigation';
 import { setDirection } from '@capgo/capacitor-transitions/react';
+import { router } from './router';
 
 await NativeNavigation.addListener('navbarBack', () => {
   setDirection('back');

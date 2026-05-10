@@ -127,6 +127,37 @@ function createAnimation(element: HTMLElement, keyframes: Keyframe[], duration: 
   });
 }
 
+function resolvePageChrome(element: HTMLElement): HTMLElement[] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>(
+      '[data-cap-header], .cap-header, cap-header, [slot="header"], [data-cap-footer], .cap-footer, cap-footer, [slot="footer"]',
+    ),
+  );
+}
+
+function invertTranslateOffset(offset: string): string {
+  if (offset === IOS_CENTER) {
+    return IOS_CENTER;
+  }
+
+  return offset.startsWith('-') ? offset.slice(1) : `-${offset}`;
+}
+
+function createPinnedChromeAnimations(
+  elements: HTMLElement[],
+  fromTransform: string,
+  toTransform: string,
+  duration: number,
+  easing: string,
+): Animation[] {
+  return elements.map((element) => {
+    element.style.willChange = 'transform';
+    element.style.backfaceVisibility = 'hidden';
+
+    return createAnimation(element, [{ transform: fromTransform }, { transform: toTransform }], duration, easing);
+  });
+}
+
 /**
  * iOS-style horizontal slide transition
  * Forward: new page slides in from right
@@ -141,6 +172,8 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
   const isRTL = getDocumentDirection(enteringEl) === 'rtl';
   const offRight = isRTL ? IOS_OFF_RIGHT_RTL : IOS_OFF_RIGHT;
   const offLeft = isRTL ? IOS_OFF_LEFT_RTL : IOS_OFF_LEFT;
+  const chromeOffRight = invertTranslateOffset(offRight);
+  const chromeOffLeft = invertTranslateOffset(offLeft);
   const leadingEdgeShadow = isRTL ? '8px 0 24px rgba(0, 0, 0, 0.18)' : '-8px 0 24px rgba(0, 0, 0, 0.18)';
 
   preparePageLayer(enteringEl, isBack ? '99' : '101');
@@ -177,6 +210,15 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
   } else if (isBack) {
     // Matches Ionic iOS: previous page sits behind at one-third offset and brightens as the top page exits.
     animations.push(
+      ...createPinnedChromeAnimations(
+        resolvePageChrome(enteringEl),
+        `translate3d(${chromeOffLeft}, 0, 0)`,
+        `translate3d(${IOS_CENTER}, 0, 0)`,
+        duration,
+        easing,
+      ),
+    );
+    animations.push(
       createAnimation(
         enteringEl,
         [
@@ -190,6 +232,15 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
 
     if (leavingEl) {
       leavingEl.style.boxShadow = leadingEdgeShadow;
+      animations.push(
+        ...createPinnedChromeAnimations(
+          resolvePageChrome(leavingEl),
+          `translate3d(${IOS_CENTER}, 0, 0)`,
+          `translate3d(${chromeOffRight}, 0, 0)`,
+          duration,
+          easing,
+        ),
+      );
       animations.push(
         createAnimation(
           leavingEl,
@@ -205,6 +256,15 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
   } else {
     enteringEl.style.boxShadow = leadingEdgeShadow;
     animations.push(
+      ...createPinnedChromeAnimations(
+        resolvePageChrome(enteringEl),
+        `translate3d(${chromeOffRight}, 0, 0)`,
+        `translate3d(${IOS_CENTER}, 0, 0)`,
+        duration,
+        easing,
+      ),
+    );
+    animations.push(
       createAnimation(
         enteringEl,
         [
@@ -217,6 +277,15 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
     );
 
     if (leavingEl) {
+      animations.push(
+        ...createPinnedChromeAnimations(
+          resolvePageChrome(leavingEl),
+          `translate3d(${IOS_CENTER}, 0, 0)`,
+          `translate3d(${chromeOffLeft}, 0, 0)`,
+          duration,
+          easing,
+        ),
+      );
       animations.push(
         createAnimation(
           leavingEl,

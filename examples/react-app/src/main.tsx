@@ -175,7 +175,7 @@ function App() {
 
   useEffect(() => {
     if (outletRef.current) {
-      setupRouterOutlet(outletRef.current, { platform: 'auto' })
+      setupRouterOutlet(outletRef.current, { platform: 'auto', swipeGesture: 'auto' })
     }
   }, [])
 

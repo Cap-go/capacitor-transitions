@@ -9,6 +9,12 @@ export type TransitionDirection = 'forward' | 'back' | 'root' | 'none';
 /** Platform-specific animation styles */
 export type TransitionPlatform = 'ios' | 'android' | 'auto';
 
+/** Runtime platform reported by Capacitor when available */
+export type NativePlatform = 'ios' | 'android' | 'web' | 'unknown';
+
+/** Whether the edge swipe-back gesture is enabled, disabled, or native-detected */
+export type SwipeGestureOption = boolean | 'auto';
+
 /** Which parts of the page to animate */
 export type TransitionTarget = 'header' | 'content' | 'footer' | 'all';
 
@@ -43,6 +49,14 @@ export interface TransitionConfig {
   onComplete?: () => void;
   /** Whether to use View Transitions API when available (default: false) */
   useViewTransitions?: boolean;
+}
+
+/** Capacitor native runtime detection result */
+export interface NativePlatformInfo {
+  /** Platform name from Capacitor.getPlatform() when available */
+  platform: NativePlatform;
+  /** Whether Capacitor reports a native installed app runtime */
+  isNative: boolean;
 }
 
 /** Resolved platform type (excludes 'auto') */
@@ -148,6 +162,8 @@ export interface RouterOutletOptions {
   animation?: AnimationBuilder;
   /** Transition configuration */
   transition?: TransitionConfig;
+  /** Edge swipe-back gesture support (default: 'auto', native iOS only) */
+  swipeGesture?: SwipeGestureOption;
 }
 
 /** Page component options */

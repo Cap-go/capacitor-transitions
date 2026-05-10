@@ -4,7 +4,7 @@
 
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
-import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
 
 // Ensure web components are registered
 import '../components';
@@ -61,18 +61,20 @@ interface RouterOutletOptions {
   maxCached?: number;
   platform?: 'ios' | 'android' | 'auto';
   duration?: number;
+  swipeGesture?: SwipeGestureOption;
 }
 
 export function routerOutlet(
   node: HTMLElement,
   options: RouterOutletOptions = {},
 ): SvelteActionReturn<RouterOutletOptions> {
-  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options;
+  const { keepInDom = true, maxCached = 10, platform = 'auto', duration, swipeGesture } = options;
 
   node.setAttribute('platform', platform);
   if (duration) node.setAttribute('duration', String(duration));
   node.setAttribute('keep-in-dom', String(keepInDom));
   node.setAttribute('max-cached', String(maxCached));
+  if (swipeGesture !== undefined) node.setAttribute('swipe-gesture', String(swipeGesture));
 
   return {
     update(newOptions: RouterOutletOptions): void {
@@ -83,6 +85,11 @@ export function routerOutlet(
       }
       if (newOptions.maxCached !== undefined) {
         node.setAttribute('max-cached', String(newOptions.maxCached));
+      }
+      if (newOptions.swipeGesture !== undefined) {
+        node.setAttribute('swipe-gesture', String(newOptions.swipeGesture));
+      } else {
+        node.removeAttribute('swipe-gesture');
       }
     },
     destroy(): void {
@@ -158,7 +165,7 @@ export function createTransitionNavigate(
 }
 
 // Re-export types
-export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
 
 // Export controller class for advanced usage
 export { TransitionController } from '../core/transition-controller';

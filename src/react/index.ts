@@ -5,7 +5,7 @@
 
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
-import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
 
 // Ensure web components are registered
 import '../components';
@@ -60,14 +60,16 @@ export function setupRouterOutlet(
     maxCached?: number;
     platform?: 'ios' | 'android' | 'auto';
     duration?: number;
+    swipeGesture?: SwipeGestureOption;
   } = {},
 ): void {
-  const { keepInDom = true, maxCached = 10, platform = 'auto', duration } = options;
+  const { keepInDom = true, maxCached = 10, platform = 'auto', duration, swipeGesture } = options;
 
   element.setAttribute('platform', platform);
   if (duration) element.setAttribute('duration', String(duration));
   element.setAttribute('keep-in-dom', String(keepInDom));
   element.setAttribute('max-cached', String(maxCached));
+  if (swipeGesture !== undefined) element.setAttribute('swipe-gesture', String(swipeGesture));
 }
 
 /**
@@ -155,7 +157,7 @@ export function createTransitionNavigate(
 }
 
 // Re-export types
-export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent } from '../core/types';
+export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
 
 // Export controller for advanced usage
 export { TransitionController } from '../core/transition-controller';
@@ -170,6 +172,7 @@ declare global {
         duration?: number;
         'keep-in-dom'?: boolean;
         'max-cached'?: number;
+        'swipe-gesture'?: boolean | 'true' | 'false' | 'auto';
         ref?: unknown;
         children?: unknown;
       };

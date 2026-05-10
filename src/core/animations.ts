@@ -130,7 +130,7 @@ function createAnimation(element: HTMLElement, keyframes: Keyframe[], duration: 
 function resolvePageChrome(element: HTMLElement): HTMLElement[] {
   return Array.from(
     element.querySelectorAll<HTMLElement>(
-      '[data-cap-header], .cap-header, cap-header, [slot="header"], [data-cap-footer], .cap-footer, cap-footer, [slot="footer"]',
+      ':scope > [data-cap-header], :scope > .cap-header, :scope > cap-header, :scope > [slot="header"], :scope > [data-cap-footer], :scope > .cap-footer, :scope > cap-footer, :scope > [slot="footer"]',
     ),
   );
 }

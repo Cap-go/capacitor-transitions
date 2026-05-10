@@ -377,8 +377,6 @@ export class TransitionController {
     for (const element of [header, content, footer]) {
       if (!element) continue;
 
-      element.style.removeProperty('transform');
-      element.style.removeProperty('opacity');
       this.clearTransitionOnlyStyles(element);
     }
   }

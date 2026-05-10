@@ -1,5 +1,5 @@
 /**
- * Svelte bindings for @capgo/transitions
+ * Svelte bindings for @capgo/capacitor-transitions
  */
 
 import type { TransitionController } from '../core/transition-controller';

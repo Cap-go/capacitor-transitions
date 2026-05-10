@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page as pageStore } from '$app/stores'
-  import { page, setDirection } from '@capgo/transitions/svelte'
+  import { page, setDirection } from '@capgo/capacitor-transitions/svelte'
 
   $: id = $pageStore.params.id
 

@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser'
 import { provideRouter, Routes } from '@angular/router'
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
-import '@capgo/transitions'
+import '@capgo/capacitor-transitions'
 
 import { AppComponent } from './app/app.component'
 import { HomeComponent } from './app/home.component'

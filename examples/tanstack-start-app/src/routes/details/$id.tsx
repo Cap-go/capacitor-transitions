@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router'
 import { useRef, useEffect } from 'react'
-import { setDirection, setupPage } from '@capgo/transitions/react'
+import { setDirection, setupPage } from '@capgo/capacitor-transitions/react'
 
 function DetailsPage() {
   const navigate = useNavigate()

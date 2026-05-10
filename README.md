@@ -1,4 +1,4 @@
-# @capgo/transitions
+# @capgo/capacitor-transitions
 
 Framework-agnostic page transitions for Capacitor apps. iOS-style navigation without opinions.
 
@@ -28,7 +28,7 @@ Framework-agnostic page transitions for Capacitor apps. iOS-style navigation wit
 ## Installation
 
 ```bash
-npm install @capgo/transitions
+npm install @capgo/capacitor-transitions
 ```
 
 ## Quick Start
@@ -52,7 +52,7 @@ npm install @capgo/transitions
 ```
 
 ```javascript
-import '@capgo/transitions';
+import '@capgo/capacitor-transitions';
 
 // Navigate programmatically
 const outlet = document.querySelector('cap-router-outlet');
@@ -66,8 +66,8 @@ outlet.setRoot(newRootElement);
 ```tsx
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/react';
-import '@capgo/transitions';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/capacitor-transitions/react';
+import '@capgo/capacitor-transitions';
 
 // Initialize once at app startup
 initTransitions({ platform: 'auto' });
@@ -130,8 +130,8 @@ function HomePage() {
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/vue';
-import '@capgo/transitions';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/capacitor-transitions/vue';
+import '@capgo/capacitor-transitions';
 
 // Initialize once
 initTransitions({ platform: 'auto' });
@@ -178,8 +178,8 @@ const goToDetails = (id) => {
 
 ```svelte
 <script>
-  import { routerOutlet, page, setDirection } from '@capgo/transitions/svelte'
-  import '@capgo/transitions'
+  import { routerOutlet, page, setDirection } from '@capgo/capacitor-transitions/svelte'
+  import '@capgo/capacitor-transitions'
 
   function navigate(to, direction = 'forward') {
     setDirection(direction)
@@ -204,8 +204,8 @@ const goToDetails = (id) => {
 ```tsx
 import { onMount, onCleanup } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/transitions/solid';
-import '@capgo/transitions';
+import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/capacitor-transitions/solid';
+import '@capgo/capacitor-transitions';
 
 // Initialize once
 initTransitions({ platform: 'auto' });
@@ -246,7 +246,7 @@ function HomePage() {
 ```typescript
 // app.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import '@capgo/transitions';
+import '@capgo/capacitor-transitions';
 
 @Component({
   selector: 'app-root',
@@ -282,6 +282,73 @@ export class HomeComponent {
   }
 }
 ```
+
+## Use With @capgo/native-navigation
+
+Use `@capgo/native-navigation` when the native layer should own the navbar or tabbar, and use `@capgo/capacitor-transitions` for the WebView page content underneath that native chrome.
+
+```bash
+npm install @capgo/capacitor-transitions @capgo/native-navigation
+npx cap sync
+```
+
+Configure native chrome first:
+
+```typescript
+import { NativeNavigation } from '@capgo/native-navigation';
+
+await NativeNavigation.configure({
+  contentInsetMode: 'css',
+});
+
+await NativeNavigation.setNavbar({
+  title: 'Inbox',
+  backButton: { visible: false },
+});
+```
+
+Keep the transition outlet focused on pages, not native bars:
+
+```html
+<cap-router-outlet platform="auto" swipe-gesture="auto">
+  <cap-page>
+    <cap-content slot="content" fullscreen>
+      <main class="native-page">Inbox content</main>
+    </cap-content>
+  </cap-page>
+</cap-router-outlet>
+```
+
+```css
+.native-page {
+  padding-top: var(--cap-native-navigation-top);
+  padding-bottom: var(--cap-native-navigation-bottom);
+}
+```
+
+Drive both packages from the same router actions:
+
+```typescript
+import { NativeNavigation } from '@capgo/native-navigation';
+import { setDirection } from '@capgo/capacitor-transitions/react';
+
+await NativeNavigation.addListener('navbarBack', () => {
+  setDirection('back');
+  router.back();
+});
+
+async function openMessage(id: string) {
+  setDirection('forward');
+  router.push(`/message/${id}`);
+
+  await NativeNavigation.setNavbar({
+    title: 'Message',
+    backButton: { visible: true, title: 'Inbox' },
+  });
+}
+```
+
+Do not render the native top bar again as a moving `<cap-header>`. Native Navigation keeps the bar native; this package animates the web page body.
 
 ## API Reference
 
@@ -380,7 +447,7 @@ transitionNavigate('/path', 'forward');
 For advanced programmatic control:
 
 ```typescript
-import { createTransitionController } from '@capgo/transitions';
+import { createTransitionController } from '@capgo/capacitor-transitions';
 
 const controller = createTransitionController({
   platform: 'auto',

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { routerOutlet, page, setDirection } from '@capgo/transitions/svelte'
-  import '@capgo/transitions'
+  import { routerOutlet, page, setDirection } from '@capgo/capacitor-transitions/svelte'
+  import '@capgo/capacitor-transitions'
 
   type View = 'home' | 'details' | 'nested'
   let route: { view: View; id: string } = { view: 'home', id: '1' }

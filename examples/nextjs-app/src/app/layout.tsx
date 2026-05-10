@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { initTransitions, setupRouterOutlet } from '@capgo/transitions/react'
-import '@capgo/transitions'
+import { initTransitions, setupRouterOutlet } from '@capgo/capacitor-transitions/react'
+import '@capgo/capacitor-transitions'
 import './globals.css'
 
 // Initialize transitions once

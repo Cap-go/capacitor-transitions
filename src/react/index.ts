@@ -1,5 +1,5 @@
 /**
- * React bindings for @capgo/transitions
+ * React bindings for @capgo/capacitor-transitions
  * Helper functions for using web components in React
  */
 

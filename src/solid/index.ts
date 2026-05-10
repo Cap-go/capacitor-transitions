@@ -1,5 +1,5 @@
 /**
- * Solid bindings for @capgo/transitions
+ * Solid bindings for @capgo/capacitor-transitions
  */
 
 import type { TransitionController } from '../core/transition-controller';

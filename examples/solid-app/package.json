@@ -11,7 +11,7 @@
   "dependencies": {
     "solid-js": "^1.9.0",
     "@solidjs/router": "^0.15.0",
-    "@capgo/transitions": "file:../.."
+    "@capgo/capacitor-transitions": "file:../.."
   },
   "devDependencies": {
     "@babel/core": "^7.27.7",

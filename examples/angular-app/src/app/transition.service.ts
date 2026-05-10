@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core'
-import type { TransitionDirection } from '@capgo/transitions'
+import type { TransitionDirection } from '@capgo/capacitor-transitions'
 
 @Injectable({
   providedIn: 'root',

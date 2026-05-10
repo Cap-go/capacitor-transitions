@@ -9,7 +9,7 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
-    "@capgo/transitions": "file:../..",
+    "@capgo/capacitor-transitions": "file:../..",
     "nuxt": "^3.8.0",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"

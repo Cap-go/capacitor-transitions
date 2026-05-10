@@ -66,7 +66,7 @@ export function setupRouterOutlet(
   const { keepInDom = true, maxCached = 10, platform = 'auto', duration, swipeGesture } = options;
 
   element.setAttribute('platform', platform);
-  if (duration) element.setAttribute('duration', String(duration));
+  if (duration !== undefined) element.setAttribute('duration', String(duration));
   element.setAttribute('keep-in-dom', String(keepInDom));
   element.setAttribute('max-cached', String(maxCached));
   if (swipeGesture !== undefined) element.setAttribute('swipe-gesture', String(swipeGesture));

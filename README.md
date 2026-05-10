@@ -124,6 +124,33 @@ function HomePage() {
 }
 ```
 
+#### React JSX TypeScript setup
+
+Importing from `@capgo/capacitor-transitions/react` registers the web components and includes React JSX typings for `cap-router-outlet`, `cap-page`, `cap-header`, `cap-content`, and `cap-footer`. In most React projects, the import in the example above is enough.
+
+If TypeScript still shows `Property 'cap-router-outlet' does not exist on type 'JSX.IntrinsicElements'`, add a project declaration file:
+
+```ts
+// src/capgo-transitions.d.ts
+import '@capgo/capacitor-transitions/react';
+```
+
+Then make sure TypeScript includes it:
+
+```json
+{
+  "include": ["src", "src/capgo-transitions.d.ts"]
+}
+```
+
+For Vite, Create React App, and most webpack React apps, putting `capgo-transitions.d.ts` inside `src/` is enough. For Next.js, put it in `src/` or the project root and keep it included in `tsconfig.json`. For custom TypeScript or webpack setups with a separate `types/` folder, add that folder to `tsconfig.json`:
+
+```json
+{
+  "include": ["src", "types"]
+}
+```
+
 ### Vue
 
 ```vue

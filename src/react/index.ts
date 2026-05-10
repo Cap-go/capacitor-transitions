@@ -162,48 +162,90 @@ export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, Swip
 // Export controller for advanced usage
 export { TransitionController } from '../core/transition-controller';
 
-// Type declarations for custom elements in React/JSX
+type CapElementAttributes = {
+  key?: unknown;
+  ref?: unknown;
+  children?: unknown;
+  id?: string;
+  class?: string;
+  className?: string;
+  style?: unknown;
+  slot?: string;
+  role?: string;
+  part?: string;
+  title?: string;
+  tabIndex?: number;
+  [attribute: `data-${string}`]: unknown;
+  [attribute: `aria-${string}`]: unknown;
+  [eventHandler: `on${string}`]: unknown;
+};
+
+type Booleanish = boolean | 'true' | 'false';
+
+interface CapTransitionsIntrinsicElements {
+  'cap-router-outlet': CapElementAttributes & {
+    platform?: 'ios' | 'android' | 'auto';
+    duration?: number | string;
+    'keep-in-dom'?: Booleanish;
+    'max-cached'?: number | string;
+    'swipe-gesture'?: boolean | 'true' | 'false' | 'auto';
+  };
+  'cap-page': CapElementAttributes & {
+    'cache-scroll'?: Booleanish;
+    'data-direction'?: 'forward' | 'back' | 'root' | 'none';
+  };
+  'cap-header': CapElementAttributes & {
+    translucent?: Booleanish;
+    collapse?: string;
+  };
+  'cap-content': CapElementAttributes & {
+    fullscreen?: Booleanish;
+    'scroll-x'?: Booleanish;
+    'scroll-y'?: Booleanish;
+  };
+  'cap-footer': CapElementAttributes & {
+    translucent?: Booleanish;
+  };
+}
+
+// Type declarations for custom elements in React/JSX.
+// Keep both global JSX and scoped React JSX declarations so React 18 and 19
+// projects recognize the elements after importing this package subpath.
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      'cap-router-outlet': {
-        platform?: 'ios' | 'android' | 'auto';
-        duration?: number;
-        'keep-in-dom'?: boolean;
-        'max-cached'?: number;
-        'swipe-gesture'?: boolean | 'true' | 'false' | 'auto';
-        ref?: unknown;
-        children?: unknown;
-      };
-      'cap-page': {
-        key?: string;
-        'cache-scroll'?: boolean;
-        'data-direction'?: 'forward' | 'back' | 'root' | 'none';
-        ref?: unknown;
-        children?: unknown;
-      };
-      'cap-header': {
-        translucent?: boolean;
-        collapse?: string;
-        slot?: string;
-        ref?: unknown;
-        children?: unknown;
-      };
-      'cap-content': {
-        fullscreen?: boolean;
-        'scroll-x'?: boolean;
-        'scroll-y'?: boolean;
-        slot?: string;
-        ref?: unknown;
-        children?: unknown;
-      };
-      'cap-footer': {
-        translucent?: boolean;
-        slot?: string;
-        ref?: unknown;
-        children?: unknown;
-      };
+      'cap-router-outlet': CapTransitionsIntrinsicElements['cap-router-outlet'];
+      'cap-page': CapTransitionsIntrinsicElements['cap-page'];
+      'cap-header': CapTransitionsIntrinsicElements['cap-header'];
+      'cap-content': CapTransitionsIntrinsicElements['cap-content'];
+      'cap-footer': CapTransitionsIntrinsicElements['cap-footer'];
+    }
+  }
+}
+
+declare module 'react' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX {
+    interface IntrinsicElements {
+      'cap-router-outlet': CapTransitionsIntrinsicElements['cap-router-outlet'];
+      'cap-page': CapTransitionsIntrinsicElements['cap-page'];
+      'cap-header': CapTransitionsIntrinsicElements['cap-header'];
+      'cap-content': CapTransitionsIntrinsicElements['cap-content'];
+      'cap-footer': CapTransitionsIntrinsicElements['cap-footer'];
+    }
+  }
+}
+
+declare module 'react/jsx-runtime' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX {
+    interface IntrinsicElements {
+      'cap-router-outlet': CapTransitionsIntrinsicElements['cap-router-outlet'];
+      'cap-page': CapTransitionsIntrinsicElements['cap-page'];
+      'cap-header': CapTransitionsIntrinsicElements['cap-header'];
+      'cap-content': CapTransitionsIntrinsicElements['cap-content'];
+      'cap-footer': CapTransitionsIntrinsicElements['cap-footer'];
     }
   }
 }

@@ -43,6 +43,7 @@ cap-page {
   cursor: pointer;
   position: absolute;
   left: 8px;
+  z-index: 1;
 }
 
 /* Content styles */

@@ -286,6 +286,7 @@ export class TransitionController {
 
         // Update visibility
         this.updatePageVisibility(enteringState, leavingState);
+        cancelAnimations(this.currentAnimations);
       }
 
       // Call didEnter on entering page
@@ -327,6 +328,7 @@ export class TransitionController {
     enteringState.element.style.transform = 'none';
     enteringState.element.style.position = 'relative';
     this.clearTransitionOnlyStyles(enteringState.element);
+    this.clearPagePartTransitionStyles(enteringState);
 
     // Hide leaving page but keep in DOM
     if (leavingState) {
@@ -335,6 +337,7 @@ export class TransitionController {
       leavingState.element.style.opacity = '1';
       leavingState.element.style.transform = 'none';
       this.clearTransitionOnlyStyles(leavingState.element);
+      this.clearPagePartTransitionStyles(leavingState);
     }
   }
 
@@ -360,12 +363,23 @@ export class TransitionController {
    * Remove styles that should only exist while a page is actively transitioning.
    */
   private clearTransitionOnlyStyles(element: HTMLElement): void {
+    element.classList.remove('cap-transition-active');
     element.style.removeProperty('z-index');
     element.style.removeProperty('pointer-events');
     element.style.removeProperty('will-change');
     element.style.removeProperty('backface-visibility');
     element.style.removeProperty('transform-style');
     element.style.removeProperty('box-shadow');
+  }
+
+  private clearPagePartTransitionStyles(pageState: PageState): void {
+    const { header, content, footer } = this.resolvePageParts(pageState);
+
+    for (const element of [header, content, footer]) {
+      if (!element) continue;
+
+      this.clearTransitionOnlyStyles(element);
+    }
   }
 
   /**

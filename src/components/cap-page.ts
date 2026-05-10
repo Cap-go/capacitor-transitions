@@ -49,6 +49,10 @@ export class CapPage extends HTMLElement {
           color: var(--cap-page-color, CanvasText);
         }
 
+        :host(.cap-transition-active) {
+          overflow: visible;
+        }
+
         .header-container {
           flex-shrink: 0;
           position: relative;

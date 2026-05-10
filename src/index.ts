@@ -6,7 +6,7 @@
  * - iOS and Android style transitions
  * - Works with any framework (React, Vue, Angular, Svelte, Solid, etc.)
  * - Uses Web Animations API for smooth, GPU-accelerated transitions
- * - Supports View Transitions API as progressive enhancement
+ * - Supports View Transitions API as optional progressive enhancement
  * - No styling opinions - just transition logic
  * - Coordinates header, content, and footer animations
  */

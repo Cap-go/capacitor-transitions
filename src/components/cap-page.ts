@@ -45,6 +45,8 @@ export class CapPage extends HTMLElement {
           height: 100%;
           position: relative;
           overflow: hidden;
+          background: var(--cap-page-background, Canvas);
+          color: var(--cap-page-color, CanvasText);
         }
 
         .header-container {

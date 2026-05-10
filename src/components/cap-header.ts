@@ -23,9 +23,6 @@ export class CapHeader extends HTMLElement {
     this.style.position = 'relative';
     this.style.zIndex = '10';
 
-    // For view transitions API
-    this.style.viewTransitionName = 'cap-header';
-
     // Mark for transition controller
     this.setAttribute('data-cap-header', '');
 

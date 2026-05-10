@@ -20,12 +20,12 @@ export type TransitionEasing =
   | 'ease-out'
   | 'ease-in-out'
   | 'ios' // cubic-bezier(0.32, 0.72, 0, 1)
-  | 'android' // cubic-bezier(0.4, 0, 0.2, 1)
+  | 'android' // cubic-bezier(0.36, 0.66, 0.04, 1)
   | string; // Custom cubic-bezier
 
 /** Configuration for a single transition animation */
 export interface TransitionConfig {
-  /** Duration in milliseconds (default: 540 for iOS, 300 for Android) */
+  /** Duration in milliseconds (default: 540 for iOS, 280/200 for Android forward/back) */
   duration?: number;
   /** Easing function (default: 'ios' or 'android' based on platform) */
   easing?: TransitionEasing;
@@ -41,7 +41,7 @@ export interface TransitionConfig {
   onStart?: () => void;
   /** Callback after animation completes */
   onComplete?: () => void;
-  /** Whether to use View Transitions API when available (default: true) */
+  /** Whether to use View Transitions API when available (default: false) */
   useViewTransitions?: boolean;
 }
 
@@ -56,7 +56,7 @@ export interface TransitionGlobalConfig {
   duration?: number;
   /** Default easing */
   easing?: TransitionEasing;
-  /** Whether to use View Transitions API (default: true) */
+  /** Whether to use View Transitions API (default: false) */
   useViewTransitions?: boolean;
   /** Custom platform detection function */
   detectPlatform?: () => ResolvedPlatform;

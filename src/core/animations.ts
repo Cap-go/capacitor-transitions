@@ -8,14 +8,29 @@ import type { TransitionAnimationOptions, TransitionEasing, TransitionPlatform, 
 /** iOS easing curve - matches UIKit spring animation feel */
 export const IOS_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
-/** Android Material Design easing */
-export const ANDROID_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+/** Android Material Design forward easing */
+export const ANDROID_EASING = 'cubic-bezier(0.36, 0.66, 0.04, 1)';
+
+/** Android Material Design back easing */
+export const ANDROID_BACK_EASING = 'cubic-bezier(0.47, 0, 0.745, 0.715)';
 
 /** Default iOS transition duration */
 export const IOS_DURATION = 540;
 
-/** Default Android transition duration */
-export const ANDROID_DURATION = 300;
+/** Default Android forward transition duration */
+export const ANDROID_DURATION = 280;
+
+/** Default Android back transition duration */
+export const ANDROID_BACK_DURATION = 200;
+
+const IOS_OFF_OPACITY = 0.8;
+const IOS_CENTER = '0%';
+const IOS_OFF_RIGHT = '99.5%';
+const IOS_OFF_LEFT = '-33%';
+const IOS_OFF_RIGHT_RTL = '-99.5%';
+const IOS_OFF_LEFT_RTL = '33%';
+const MD_OFF_BOTTOM = '40px';
+const MD_CENTER = '0px';
 
 /**
  * Resolve easing string to CSS value
@@ -59,17 +74,57 @@ export function detectPlatform(): ResolvedPlatform {
 /**
  * Get default duration for platform
  */
-export function getDefaultDuration(platform: TransitionPlatform): number {
+export function getDefaultDuration(
+  platform: TransitionPlatform,
+  direction: 'forward' | 'back' | 'root' | 'none' = 'forward',
+): number {
   const resolved = platform === 'auto' ? detectPlatform() : platform;
-  return resolved === 'ios' ? IOS_DURATION : ANDROID_DURATION;
+  if (resolved === 'ios') {
+    return IOS_DURATION;
+  }
+  return direction === 'back' ? ANDROID_BACK_DURATION : ANDROID_DURATION;
 }
 
 /**
  * Get default easing for platform
  */
-export function getDefaultEasing(platform: TransitionPlatform): string {
+export function getDefaultEasing(
+  platform: TransitionPlatform,
+  direction: 'forward' | 'back' | 'root' | 'none' = 'forward',
+): string {
   const resolved = platform === 'auto' ? detectPlatform() : platform;
-  return resolved === 'ios' ? IOS_EASING : ANDROID_EASING;
+  if (resolved === 'ios') {
+    return IOS_EASING;
+  }
+  return direction === 'back' ? ANDROID_BACK_EASING : ANDROID_EASING;
+}
+
+function getDocumentDirection(element: HTMLElement): 'ltr' | 'rtl' {
+  const doc = element.ownerDocument;
+  return doc.dir === 'rtl' || doc.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
+}
+
+function preparePageLayer(element: HTMLElement, zIndex: string): void {
+  element.style.display = '';
+  element.style.visibility = 'visible';
+  element.style.position = 'absolute';
+  element.style.top = '0';
+  element.style.left = '0';
+  element.style.width = '100%';
+  element.style.height = '100%';
+  element.style.zIndex = zIndex;
+  element.style.pointerEvents = 'none';
+  element.style.willChange = 'transform, opacity';
+  element.style.backfaceVisibility = 'hidden';
+  element.style.transformStyle = 'preserve-3d';
+}
+
+function createAnimation(element: HTMLElement, keyframes: Keyframe[], duration: number, easing: string): Animation {
+  return element.animate(keyframes, {
+    duration,
+    easing,
+    fill: 'both',
+  });
 }
 
 /**
@@ -83,91 +138,96 @@ export function createIOSTransition(options: TransitionAnimationOptions): Animat
 
   const isBack = direction === 'back';
   const isRoot = direction === 'root';
+  const isRTL = getDocumentDirection(enteringEl) === 'rtl';
+  const offRight = isRTL ? IOS_OFF_RIGHT_RTL : IOS_OFF_RIGHT;
+  const offLeft = isRTL ? IOS_OFF_LEFT_RTL : IOS_OFF_LEFT;
+  const leadingEdgeShadow = isRTL ? '8px 0 24px rgba(0, 0, 0, 0.18)' : '-8px 0 24px rgba(0, 0, 0, 0.18)';
 
-  // Ensure elements are positioned for animation
-  enteringEl.style.position = 'absolute';
-  enteringEl.style.top = '0';
-  enteringEl.style.left = '0';
-  enteringEl.style.width = '100%';
-  enteringEl.style.height = '100%';
+  preparePageLayer(enteringEl, isBack ? '99' : '101');
+  if (leavingEl) {
+    preparePageLayer(leavingEl, '100');
+  }
 
   if (isRoot) {
-    // Root transition - fade in new page, no animation on old
-    const enterAnimation = enteringEl.animate([{ opacity: 0 }, { opacity: 1 }], {
-      duration,
-      easing,
-      fill: 'forwards',
-    });
-    animations.push(enterAnimation);
-  } else if (isBack) {
-    // Back navigation - entering page comes from left, leaving slides out to right
-    const enterAnimation = enteringEl.animate(
-      [
-        { transform: 'translateX(-30%)', opacity: 0.8 },
-        { transform: 'translateX(0%)', opacity: 1 },
-      ],
-      {
+    animations.push(
+      createAnimation(
+        enteringEl,
+        [
+          { opacity: 0.01, transform: 'translate3d(0, 0, 0)' },
+          { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+        ],
         duration,
         easing,
-        fill: 'forwards',
-      },
+      ),
     );
-    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute';
-      leavingEl.style.top = '0';
-      leavingEl.style.left = '0';
-      leavingEl.style.width = '100%';
-      leavingEl.style.height = '100%';
-
-      const leaveAnimation = leavingEl.animate(
+      animations.push(
+        createAnimation(
+          leavingEl,
+          [
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+            { opacity: 0, transform: 'translate3d(0, 0, 0)' },
+          ],
+          Math.min(duration, 240),
+          easing,
+        ),
+      );
+    }
+  } else if (isBack) {
+    // Matches Ionic iOS: previous page sits behind at one-third offset and brightens as the top page exits.
+    animations.push(
+      createAnimation(
+        enteringEl,
         [
-          { transform: 'translateX(0%)', opacity: 1 },
-          { transform: 'translateX(100%)', opacity: 1 },
+          { transform: `translate3d(${offLeft}, 0, 0)`, opacity: IOS_OFF_OPACITY },
+          { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
         ],
-        {
+        duration,
+        easing,
+      ),
+    );
+
+    if (leavingEl) {
+      leavingEl.style.boxShadow = leadingEdgeShadow;
+      animations.push(
+        createAnimation(
+          leavingEl,
+          [
+            { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
+            { transform: `translate3d(${offRight}, 0, 0)`, opacity: 1 },
+          ],
           duration,
           easing,
-          fill: 'forwards',
-        },
+        ),
       );
-      animations.push(leaveAnimation);
     }
   } else {
-    // Forward navigation - entering page comes from right, leaving slides out to left
-    const enterAnimation = enteringEl.animate(
-      [
-        { transform: 'translateX(100%)', opacity: 1 },
-        { transform: 'translateX(0%)', opacity: 1 },
-      ],
-      {
+    enteringEl.style.boxShadow = leadingEdgeShadow;
+    animations.push(
+      createAnimation(
+        enteringEl,
+        [
+          { transform: `translate3d(${offRight}, 0, 0)`, opacity: 1 },
+          { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
+        ],
         duration,
         easing,
-        fill: 'forwards',
-      },
+      ),
     );
-    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute';
-      leavingEl.style.top = '0';
-      leavingEl.style.left = '0';
-      leavingEl.style.width = '100%';
-      leavingEl.style.height = '100%';
-
-      const leaveAnimation = leavingEl.animate(
-        [
-          { transform: 'translateX(0%)', opacity: 1 },
-          { transform: 'translateX(-30%)', opacity: 0.8 },
-        ],
-        {
+      animations.push(
+        createAnimation(
+          leavingEl,
+          [
+            { transform: `translate3d(${IOS_CENTER}, 0, 0)`, opacity: 1 },
+            { transform: `translate3d(${offLeft}, 0, 0)`, opacity: IOS_OFF_OPACITY },
+          ],
           duration,
           easing,
-          fill: 'forwards',
-        },
+        ),
       );
-      animations.push(leaveAnimation);
     }
   }
 
@@ -186,96 +246,70 @@ export function createAndroidTransition(options: TransitionAnimationOptions): An
   const isBack = direction === 'back';
   const isRoot = direction === 'root';
 
-  // Ensure elements are positioned for animation
-  enteringEl.style.position = 'absolute';
-  enteringEl.style.top = '0';
-  enteringEl.style.left = '0';
-  enteringEl.style.width = '100%';
-  enteringEl.style.height = '100%';
+  preparePageLayer(enteringEl, isBack ? '99' : '101');
+  if (leavingEl) {
+    preparePageLayer(leavingEl, '100');
+  }
 
   if (isRoot) {
-    // Root transition - fade in
-    const enterAnimation = enteringEl.animate(
-      [
-        { opacity: 0, transform: 'scale(0.95)' },
-        { opacity: 1, transform: 'scale(1)' },
-      ],
-      {
+    animations.push(
+      createAnimation(
+        enteringEl,
+        [
+          { opacity: 0.01, transform: `translate3d(0, ${MD_OFF_BOTTOM}, 0)` },
+          { opacity: 1, transform: `translate3d(0, ${MD_CENTER}, 0)` },
+        ],
         duration,
         easing,
-        fill: 'forwards',
-      },
+      ),
     );
-    animations.push(enterAnimation);
-  } else if (isBack) {
-    // Back - entering fades in, leaving slides down
-    const enterAnimation = enteringEl.animate(
-      [
-        { opacity: 0.8, transform: 'scale(0.95)' },
-        { opacity: 1, transform: 'scale(1)' },
-      ],
-      {
-        duration,
-        easing,
-        fill: 'forwards',
-      },
-    );
-    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute';
-      leavingEl.style.top = '0';
-      leavingEl.style.left = '0';
-      leavingEl.style.width = '100%';
-      leavingEl.style.height = '100%';
+      animations.push(
+        createAnimation(
+          leavingEl,
+          [
+            { opacity: 1, transform: `translate3d(0, ${MD_CENTER}, 0)` },
+            { opacity: 0, transform: `translate3d(0, ${MD_CENTER}, 0)` },
+          ],
+          Math.min(duration, ANDROID_BACK_DURATION),
+          ANDROID_BACK_EASING,
+        ),
+      );
+    }
+  } else if (isBack) {
+    enteringEl.style.opacity = '1';
+    enteringEl.style.transform = `translate3d(0, ${MD_CENTER}, 0)`;
 
-      const leaveAnimation = leavingEl.animate(
-        [
-          { transform: 'translateY(0%)', opacity: 1 },
-          { transform: 'translateY(100%)', opacity: 1 },
-        ],
-        {
+    if (leavingEl) {
+      animations.push(
+        createAnimation(
+          leavingEl,
+          [
+            { opacity: 1, transform: `translate3d(0, ${MD_CENTER}, 0)` },
+            { opacity: 0, transform: `translate3d(0, ${MD_OFF_BOTTOM}, 0)` },
+          ],
           duration,
           easing,
-          fill: 'forwards',
-        },
+        ),
       );
-      animations.push(leaveAnimation);
     }
   } else {
-    // Forward - entering slides up, leaving fades/scales down
-    const enterAnimation = enteringEl.animate(
-      [
-        { transform: 'translateY(100%)', opacity: 1 },
-        { transform: 'translateY(0%)', opacity: 1 },
-      ],
-      {
+    animations.push(
+      createAnimation(
+        enteringEl,
+        [
+          { opacity: 0.01, transform: `translate3d(0, ${MD_OFF_BOTTOM}, 0)` },
+          { opacity: 1, transform: `translate3d(0, ${MD_CENTER}, 0)` },
+        ],
         duration,
         easing,
-        fill: 'forwards',
-      },
+      ),
     );
-    animations.push(enterAnimation);
 
     if (leavingEl) {
-      leavingEl.style.position = 'absolute';
-      leavingEl.style.top = '0';
-      leavingEl.style.left = '0';
-      leavingEl.style.width = '100%';
-      leavingEl.style.height = '100%';
-
-      const leaveAnimation = leavingEl.animate(
-        [
-          { opacity: 1, transform: 'scale(1)' },
-          { opacity: 0.8, transform: 'scale(0.95)' },
-        ],
-        {
-          duration,
-          easing,
-          fill: 'forwards',
-        },
-      );
-      animations.push(leaveAnimation);
+      leavingEl.style.opacity = '1';
+      leavingEl.style.transform = `translate3d(0, ${MD_CENTER}, 0)`;
     }
   }
 
@@ -325,15 +359,7 @@ export function createTransition(
 export async function waitForAnimations(animations: Animation[]): Promise<void> {
   if (animations.length === 0) return;
 
-  await Promise.all(
-    animations.map(
-      (anim) =>
-        new Promise<void>((resolve) => {
-          anim.onfinish = () => resolve();
-          anim.oncancel = () => resolve();
-        }),
-    ),
-  );
+  await Promise.all(animations.map((anim) => anim.finished.catch(() => undefined)));
 }
 
 /**

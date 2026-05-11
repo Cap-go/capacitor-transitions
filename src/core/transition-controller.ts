@@ -42,7 +42,9 @@ interface InteractiveBackTransition {
   enteringState: PageState;
   leavingState: PageState;
   animations: Animation[];
+  animationDurations: number[];
   duration: number;
+  progress: number;
 }
 
 /**
@@ -207,13 +209,16 @@ export class TransitionController {
       animation.pause();
       animation.currentTime = 0;
     }
+    const animationDurations = animations.map((animation) => this.getAnimationDuration(animation, duration));
 
     this.currentAnimations = animations;
     this.interactiveBackTransition = {
       enteringState,
       leavingState,
       animations,
+      animationDurations,
       duration,
+      progress: 0,
     };
 
     return true;
@@ -229,9 +234,14 @@ export class TransitionController {
     }
 
     const progress = Math.max(0, Math.min(step, 0.9999));
-    for (const animation of transition.animations) {
-      const duration = this.getAnimationDuration(animation, transition.duration);
-      animation.pause();
+    if (Math.abs(progress - transition.progress) < 0.0005) {
+      return;
+    }
+
+    transition.progress = progress;
+
+    for (const [index, animation] of transition.animations.entries()) {
+      const duration = transition.animationDurations[index] ?? transition.duration;
       animation.currentTime = duration * progress;
     }
   }
@@ -468,16 +478,17 @@ export class TransitionController {
     }
 
     if (releaseDuration <= 0) {
-      for (const animation of transition.animations) {
-        const duration = this.getAnimationDuration(animation, transition.duration);
+      transition.progress = targetProgress;
+      for (const [index, animation] of transition.animations.entries()) {
+        const duration = transition.animationDurations[index] ?? transition.duration;
         animation.pause();
         animation.currentTime = duration * targetProgress;
       }
       return;
     }
 
-    const finished = transition.animations.map((animation) => {
-      const duration = this.getAnimationDuration(animation, transition.duration);
+    const finished = transition.animations.map((animation, index) => {
+      const duration = transition.animationDurations[index] ?? transition.duration;
       const currentTime = typeof animation.currentTime === 'number' ? animation.currentTime : 0;
       const targetTime = duration * targetProgress;
       const distance = Math.abs(targetTime - currentTime);
@@ -494,6 +505,7 @@ export class TransitionController {
     });
 
     await Promise.all(finished);
+    transition.progress = targetProgress;
   }
 
   /**

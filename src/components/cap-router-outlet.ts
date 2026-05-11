@@ -381,7 +381,7 @@ export class CapRouterOutlet extends HTMLElement {
    * Check if we can go back
    */
   get canGoBack(): boolean {
-    return this.controller.stack.length > 1 && this.swipeBackDepth > 0;
+    return this.getSwipeBackDestination() !== null;
   }
 
   /**
@@ -650,8 +650,23 @@ export class CapRouterOutlet extends HTMLElement {
     this.swipeBackDepth = Math.max(0, this.navigationHrefs.length - 1);
   }
 
+  private getSwipeBackDestination(): PageState | null {
+    const stack = this.controller.stack;
+
+    if (this.swipeBackDepth <= 0 || stack.length <= 1) {
+      return null;
+    }
+
+    return stack[stack.length - 2] ?? null;
+  }
+
   private canStartSwipeGesture(event: PointerEvent): boolean {
-    if (!this.isSwipeGestureEnabled() || this.controller.animating || this.pendingPage || !this.canGoBack) {
+    if (
+      !this.isSwipeGestureEnabled() ||
+      this.controller.animating ||
+      this.pendingPage ||
+      !this.getSwipeBackDestination()
+    ) {
       return false;
     }
 
@@ -762,6 +777,11 @@ export class CapRouterOutlet extends HTMLElement {
     }
 
     if (!pointer.dragging && deltaX > this.swipeGestureThreshold && absX > absY) {
+      if (!this.getSwipeBackDestination()) {
+        this.cancelSwipeGesturePointer(event.pointerId);
+        return;
+      }
+
       pointer.dragging = true;
       pointer.transitionStarted = this.controller.beginInteractiveBack({ direction: 'back' });
 
@@ -772,6 +792,11 @@ export class CapRouterOutlet extends HTMLElement {
     }
 
     if (pointer.dragging && pointer.transitionStarted) {
+      if (!this.getSwipeBackDestination()) {
+        this.cancelSwipeGesture(event.pointerId);
+        return;
+      }
+
       if (event.cancelable) event.preventDefault();
       const width = Math.max(this.getBoundingClientRect().width, 1);
       this.controller.stepInteractiveBack(deltaX / width);
@@ -843,11 +868,12 @@ export class CapRouterOutlet extends HTMLElement {
   }
 
   private async finishSwipeGestureBack(shouldComplete: boolean, releaseDuration: number): Promise<void> {
-    const shouldUseHistory = shouldComplete && typeof window !== 'undefined' && window.history.length > 1;
+    const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+    const shouldUseHistory = canComplete && typeof window !== 'undefined' && window.history.length > 1;
 
-    await this.controller.endInteractiveBack(shouldComplete, releaseDuration, !shouldUseHistory);
+    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
 
-    if (!shouldComplete) {
+    if (!canComplete) {
       return;
     }
 

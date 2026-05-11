@@ -626,6 +626,7 @@ export class CapRouterOutlet extends HTMLElement {
     if (existingHrefIndex !== -1) {
       this.navigationHrefs = this.navigationHrefs.slice(0, existingHrefIndex + 1);
     } else if (this.navigationHrefs.length > 1) {
+      // Router redirects can land on an unexpected URL; drop the stale entry and align with currentHref.
       this.navigationHrefs.pop();
       this.navigationHrefs[this.navigationHrefs.length - 1] = currentHref;
     } else {

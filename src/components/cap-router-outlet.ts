@@ -101,7 +101,6 @@ export class CapRouterOutlet extends HTMLElement {
     this.style.width = '100%';
     this.style.height = '100%';
     this.style.overflow = 'hidden';
-    this.style.touchAction = 'pan-y';
     this.style.overscrollBehaviorX = 'contain';
     this.lastNavigationHref = this.getCurrentNavigationHref();
     this.lastNavigationPosition = this.getCurrentNavigationPosition();
@@ -479,6 +478,9 @@ export class CapRouterOutlet extends HTMLElement {
     this.removeEventListener('pointercancel', this.handleSwipeGesturePointerCancel);
     this.swipeGestureListenersActive = false;
     this.clearQueuedSwipeGestureStep();
+    if (this.swipeGesturePointer?.transitionStarted) {
+      this.controller.cancelInteractiveBack();
+    }
     this.swipeGesturePointer = null;
   }
 

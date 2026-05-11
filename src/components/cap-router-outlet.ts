@@ -50,10 +50,30 @@ export class CapRouterOutlet extends HTMLElement {
   private skipNextHistoryBackTransition = false;
   private swipeBackDepth = 0;
   private lastNavigationHref: string | null = null;
+  private lastNavigationPosition: number | null = null;
+  private pendingHistoryDirection: TransitionDirection | null = null;
+  private navigationHrefs: (string | null)[] = [];
 
   private readonly swipeGestureEdgeWidth = 50;
   private readonly swipeGestureThreshold = 10;
   private readonly swipeGestureMinimumVelocity = 0.2;
+  private readonly handleHistoryPopState = (): void => {
+    const currentPosition = this.getCurrentNavigationPosition();
+
+    if (currentPosition !== null && this.lastNavigationPosition !== null) {
+      if (currentPosition < this.lastNavigationPosition) {
+        this.pendingHistoryDirection = 'back';
+        return;
+      }
+
+      if (currentPosition > this.lastNavigationPosition) {
+        this.pendingHistoryDirection = 'forward';
+        return;
+      }
+    }
+
+    this.pendingHistoryDirection = 'back';
+  };
 
   static get observedAttributes(): string[] {
     return ['platform', 'duration', 'keep-in-dom', 'max-cached', 'swipe-gesture'];
@@ -79,6 +99,8 @@ export class CapRouterOutlet extends HTMLElement {
     this.style.height = '100%';
     this.style.overflow = 'hidden';
     this.lastNavigationHref = this.getCurrentNavigationHref();
+    this.lastNavigationPosition = this.getCurrentNavigationPosition();
+    this.ownerDocument.defaultView?.addEventListener('popstate', this.handleHistoryPopState);
 
     // Observe child changes to detect page additions
     this.observer = new MutationObserver((mutations) => {
@@ -101,10 +123,14 @@ export class CapRouterOutlet extends HTMLElement {
 
   disconnectedCallback(): void {
     this.observer?.disconnect();
+    this.ownerDocument.defaultView?.removeEventListener('popstate', this.handleHistoryPopState);
     this.removeSwipeGestureListeners();
     this.controller.clear();
     this.swipeBackDepth = 0;
     this.lastNavigationHref = null;
+    this.lastNavigationPosition = null;
+    this.pendingHistoryDirection = null;
+    this.navigationHrefs = [];
   }
 
   attributeChangedCallback(name: string, _oldValue: string, newValue: string): void {
@@ -202,6 +228,8 @@ export class CapRouterOutlet extends HTMLElement {
     (this.controller as unknown as { pageStack: PageState[] }).pageStack.push(state);
     this.swipeBackDepth = 0;
     this.lastNavigationHref = this.getCurrentNavigationHref();
+    this.lastNavigationPosition = this.getCurrentNavigationPosition();
+    this.navigationHrefs = [this.lastNavigationHref];
   }
 
   /**
@@ -211,7 +239,8 @@ export class CapRouterOutlet extends HTMLElement {
     // Determine direction from page, outlet, or default to forward.
     // Framework adapters can set direction on the outlet right before navigation.
     const outletDirection = this.dataset.direction as TransitionDirection | undefined;
-    const direction = (page.dataset.direction as TransitionDirection) || outletDirection || 'forward';
+    const explicitDirection = (page.dataset.direction as TransitionDirection | undefined) || outletDirection;
+    const direction = this.resolveNavigationDirection(explicitDirection);
     if (outletDirection) {
       delete this.dataset.direction;
     }
@@ -465,37 +494,160 @@ export class CapRouterOutlet extends HTMLElement {
     return this.ownerDocument.defaultView?.location.href ?? null;
   }
 
+  private getCurrentNavigationPosition(): number | null {
+    const win = this.ownerDocument.defaultView;
+    if (!win) {
+      return null;
+    }
+
+    const navigationIndex = (
+      win as Window & {
+        navigation?: {
+          currentEntry?: {
+            index?: unknown;
+          };
+        };
+      }
+    ).navigation?.currentEntry?.index;
+    if (typeof navigationIndex === 'number' && Number.isFinite(navigationIndex)) {
+      return navigationIndex;
+    }
+
+    const state = win.history.state as Record<string, unknown> | null;
+    for (const key of ['idx', 'position', 'index']) {
+      const value = state?.[key];
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  private resolveNavigationDirection(explicitDirection: TransitionDirection | undefined): TransitionDirection {
+    if (explicitDirection) {
+      this.pendingHistoryDirection = null;
+      return explicitDirection;
+    }
+
+    const currentHref = this.getCurrentNavigationHref();
+    const existingHrefIndex = this.findNavigationHrefIndex(currentHref, this.navigationHrefs.length - 2);
+    if (existingHrefIndex !== -1) {
+      this.pendingHistoryDirection = null;
+      return 'back';
+    }
+
+    if (currentHref !== null && currentHref === this.lastNavigationHref) {
+      this.pendingHistoryDirection = null;
+      return 'none';
+    }
+
+    if (this.pendingHistoryDirection) {
+      const direction = this.pendingHistoryDirection;
+      this.pendingHistoryDirection = null;
+      return direction;
+    }
+
+    const currentPosition = this.getCurrentNavigationPosition();
+    if (currentPosition !== null && this.lastNavigationPosition !== null) {
+      if (currentPosition < this.lastNavigationPosition) {
+        return 'back';
+      }
+
+      if (currentPosition === this.lastNavigationPosition) {
+        return 'none';
+      }
+    }
+
+    return 'forward';
+  }
+
   private recordCompletedNavigation(
     direction: TransitionDirection,
     options: { hadPageBefore: boolean; forceForward?: boolean },
   ): void {
     const currentHref = this.getCurrentNavigationHref();
+    const currentPosition = this.getCurrentNavigationPosition();
 
     if (!options.hadPageBefore || direction === 'root') {
-      this.swipeBackDepth = 0;
-      this.lastNavigationHref = currentHref;
+      this.resetNavigationDepth(currentHref, currentPosition);
       return;
     }
 
     if (direction === 'back') {
-      this.swipeBackDepth = Math.max(0, this.swipeBackDepth - 1);
-      this.lastNavigationHref = currentHref;
+      this.recordBackNavigation(currentHref);
+      this.lastNavigationPosition = currentPosition;
       return;
     }
 
-    if (direction === 'forward' || direction === 'none') {
+    if (direction === 'none') {
+      if (this.navigationHrefs.length === 0) {
+        this.navigationHrefs = [currentHref];
+      } else {
+        this.navigationHrefs[this.navigationHrefs.length - 1] = currentHref;
+      }
+
+      this.syncSwipeBackDepth();
+      this.lastNavigationHref = currentHref;
+      this.lastNavigationPosition = currentPosition;
+      return;
+    }
+
+    if (direction === 'forward') {
       const hrefChanged =
         currentHref === null || this.lastNavigationHref === null || currentHref !== this.lastNavigationHref;
 
       if (options.forceForward || hrefChanged) {
-        this.swipeBackDepth += 1;
+        this.navigationHrefs.push(currentHref);
+      } else if (this.navigationHrefs.length === 0) {
+        this.navigationHrefs = [currentHref];
       }
 
+      this.syncSwipeBackDepth();
       this.lastNavigationHref = currentHref;
+      this.lastNavigationPosition = currentPosition;
       return;
     }
 
     this.lastNavigationHref = currentHref;
+    this.lastNavigationPosition = currentPosition;
+  }
+
+  private resetNavigationDepth(currentHref: string | null, currentPosition: number | null): void {
+    this.navigationHrefs = [currentHref];
+    this.swipeBackDepth = 0;
+    this.lastNavigationHref = currentHref;
+    this.lastNavigationPosition = currentPosition;
+  }
+
+  private recordBackNavigation(currentHref: string | null): void {
+    const existingHrefIndex = this.findNavigationHrefIndex(currentHref, this.navigationHrefs.length - 2);
+
+    if (existingHrefIndex !== -1) {
+      this.navigationHrefs = this.navigationHrefs.slice(0, existingHrefIndex + 1);
+    } else if (this.navigationHrefs.length > 1) {
+      this.navigationHrefs.pop();
+      this.navigationHrefs[this.navigationHrefs.length - 1] = currentHref;
+    } else {
+      this.navigationHrefs = [currentHref];
+    }
+
+    this.syncSwipeBackDepth();
+    this.lastNavigationHref = currentHref;
+  }
+
+  private findNavigationHrefIndex(href: string | null, fromIndex: number): number {
+    for (let index = Math.min(fromIndex, this.navigationHrefs.length - 1); index >= 0; index -= 1) {
+      if (this.navigationHrefs[index] === href) {
+        return index;
+      }
+    }
+
+    return -1;
+  }
+
+  private syncSwipeBackDepth(): void {
+    this.swipeBackDepth = Math.max(0, this.navigationHrefs.length - 1);
   }
 
   private canStartSwipeGesture(event: PointerEvent): boolean {

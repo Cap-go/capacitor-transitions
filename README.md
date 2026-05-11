@@ -9,6 +9,10 @@
 
 Framework-agnostic page transitions for Capacitor apps. iOS-style navigation without opinions.
 
+## Demo
+
+<img src="./docs/demo.webp" alt="Demo of capacitor-transitions in action" width="300" />
+
 ## Features
 
 - **Framework Agnostic** - Works with React, Vue, Angular, Svelte, Solid, and any other framework

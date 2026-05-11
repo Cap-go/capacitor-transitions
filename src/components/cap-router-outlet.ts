@@ -30,6 +30,7 @@ interface SwipeGesturePointerState {
   startY: number;
   currentX: number;
   currentY: number;
+  width: number;
   startTime: number;
   dragging: boolean;
   transitionStarted: boolean;
@@ -46,6 +47,8 @@ export class CapRouterOutlet extends HTMLElement {
   private pendingPage: HTMLElement | null = null;
   private ignoredNodes = new WeakSet<HTMLElement>();
   private swipeGesturePointer: SwipeGesturePointerState | null = null;
+  private swipeGestureFrame = 0;
+  private swipeGesturePendingStep: number | null = null;
   private swipeGestureListenersActive = false;
   private skipNextHistoryBackTransition = false;
   private swipeBackDepth = 0;
@@ -98,6 +101,8 @@ export class CapRouterOutlet extends HTMLElement {
     this.style.width = '100%';
     this.style.height = '100%';
     this.style.overflow = 'hidden';
+    this.style.touchAction = 'pan-y';
+    this.style.overscrollBehaviorX = 'contain';
     this.lastNavigationHref = this.getCurrentNavigationHref();
     this.lastNavigationPosition = this.getCurrentNavigationPosition();
     this.ownerDocument.defaultView?.addEventListener('popstate', this.handleHistoryPopState);
@@ -473,6 +478,7 @@ export class CapRouterOutlet extends HTMLElement {
     this.removeEventListener('pointerup', this.handleSwipeGesturePointerEnd);
     this.removeEventListener('pointercancel', this.handleSwipeGesturePointerCancel);
     this.swipeGestureListenersActive = false;
+    this.clearQueuedSwipeGestureStep();
     this.swipeGesturePointer = null;
   }
 
@@ -735,12 +741,15 @@ export class CapRouterOutlet extends HTMLElement {
       return;
     }
 
+    const width = Math.max(this.getBoundingClientRect().width, 1);
+
     this.swipeGesturePointer = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       currentX: event.clientX,
       currentY: event.clientY,
+      width,
       startTime: performance.now(),
       dragging: false,
       transitionStarted: false,
@@ -799,8 +808,7 @@ export class CapRouterOutlet extends HTMLElement {
       }
 
       if (event.cancelable) event.preventDefault();
-      const width = Math.max(this.getBoundingClientRect().width, 1);
-      this.controller.stepInteractiveBack(deltaX / width);
+      this.queueSwipeGestureStep(deltaX / pointer.width);
     }
   };
 
@@ -816,7 +824,7 @@ export class CapRouterOutlet extends HTMLElement {
     const deltaX = this.getSwipeGestureDeltaX(pointer);
     const elapsed = Math.max(performance.now() - pointer.startTime, 1);
     const velocityX = deltaX / elapsed;
-    const width = Math.max(this.getBoundingClientRect().width, 1);
+    const width = pointer.width;
     const step = deltaX / width;
     const shouldCommit =
       pointer.dragging &&
@@ -828,6 +836,12 @@ export class CapRouterOutlet extends HTMLElement {
     const releaseDuration =
       missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
 
+    if (pointer.transitionStarted) {
+      this.flushQueuedSwipeGestureStep();
+    } else {
+      this.clearQueuedSwipeGestureStep();
+    }
+
     this.releaseSwipeGesturePointer(event.pointerId);
 
     void this.finishSwipeGestureBack(shouldCommit, releaseDuration);
@@ -838,6 +852,7 @@ export class CapRouterOutlet extends HTMLElement {
   };
 
   private cancelSwipeGesturePointer(pointerId: number): void {
+    this.clearQueuedSwipeGestureStep();
     this.releaseSwipeGesturePointer(pointerId);
   }
 
@@ -862,10 +877,53 @@ export class CapRouterOutlet extends HTMLElement {
     }
 
     this.releaseSwipeGesturePointer(pointerId);
+    this.clearQueuedSwipeGestureStep();
 
     if (pointer.transitionStarted) {
       void this.finishSwipeGestureBack(false, 0);
     }
+  }
+
+  private queueSwipeGestureStep(step: number): void {
+    this.swipeGesturePendingStep = step;
+
+    if (this.swipeGestureFrame !== 0) {
+      return;
+    }
+
+    const win = this.ownerDocument.defaultView;
+    if (!win) {
+      this.flushQueuedSwipeGestureStep();
+      return;
+    }
+
+    this.swipeGestureFrame = win.requestAnimationFrame(() => {
+      this.swipeGestureFrame = 0;
+      this.flushQueuedSwipeGestureStep();
+    });
+  }
+
+  private flushQueuedSwipeGestureStep(): void {
+    const step = this.swipeGesturePendingStep;
+    this.swipeGesturePendingStep = null;
+
+    if (this.swipeGestureFrame !== 0) {
+      this.ownerDocument.defaultView?.cancelAnimationFrame(this.swipeGestureFrame);
+      this.swipeGestureFrame = 0;
+    }
+
+    if (step !== null) {
+      this.controller.stepInteractiveBack(step);
+    }
+  }
+
+  private clearQueuedSwipeGestureStep(): void {
+    if (this.swipeGestureFrame !== 0) {
+      this.ownerDocument.defaultView?.cancelAnimationFrame(this.swipeGestureFrame);
+      this.swipeGestureFrame = 0;
+    }
+
+    this.swipeGesturePendingStep = null;
   }
 
   private async finishSwipeGestureBack(shouldComplete: boolean, releaseDuration: number): Promise<void> {

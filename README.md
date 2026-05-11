@@ -1,5 +1,7 @@
 # @capgo/capacitor-transitions
 
+<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-transitions" alt="Capgo - Instant updates for Capacitor" /></a>
+
 Framework-agnostic page transitions for Capacitor apps. iOS-style navigation without opinions.
 
 ## Features

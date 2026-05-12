@@ -70,6 +70,11 @@ const outlet = document.querySelector('cap-router-outlet');
 outlet.push(newPageElement);
 outlet.pop();
 outlet.setRoot(newRootElement);
+outlet.setRoot(onboardingDoneElement, { direction: 'forward' });
+
+// For router-driven replace/reset flows, reset the stack but keep a forward slide.
+outlet.setNavigation('root', 'forward');
+yourRouter.replace('/home');
 ```
 
 ### React
@@ -77,7 +82,13 @@ outlet.setRoot(newRootElement);
 ```tsx
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { initTransitions, setDirection, setupPage, setupRouterOutlet } from '@capgo/capacitor-transitions/react';
+import {
+  initTransitions,
+  setDirection,
+  setNavigation,
+  setupPage,
+  setupRouterOutlet,
+} from '@capgo/capacitor-transitions/react';
 import '@capgo/capacitor-transitions';
 
 // Initialize once at app startup
@@ -117,6 +128,11 @@ function HomePage() {
   const goToDetails = (id: number) => {
     setDirection('forward');
     navigate(`/details/${id}`);
+  };
+
+  const finishOnboarding = () => {
+    setNavigation('root', 'forward');
+    navigate('/home', { replace: true });
   };
 
   return (
@@ -368,7 +384,7 @@ Drive both packages from the same router actions:
 
 ```typescript
 import { NativeNavigation } from '@capgo/native-navigation';
-import { setDirection } from '@capgo/capacitor-transitions/react';
+import { setDirection, setNavigation } from '@capgo/capacitor-transitions/react';
 import { router } from './router';
 
 await NativeNavigation.addListener('navbarBack', () => {
@@ -383,6 +399,16 @@ async function openMessage(id: string) {
   await NativeNavigation.setNavbar({
     title: 'Message',
     backButton: { visible: true, title: 'Inbox' },
+  });
+}
+
+async function finishOnboarding() {
+  setNavigation('root', 'forward');
+  router.replace('/inbox');
+
+  await NativeNavigation.setNavbar({
+    title: 'Inbox',
+    backButton: { visible: false },
   });
 }
 ```
@@ -409,7 +435,8 @@ Methods:
 
 - `push(element, config?)` - Navigate forward to new page
 - `pop(config?)` - Navigate back
-- `setRoot(element, config?)` - Replace navigation stack
+- `setRoot(element, config?)` - Replace navigation stack. Pass `{ direction: 'forward' }` to reset the stack with a forward slide.
+- `setNavigation(action, direction?)` - Set the stack action and animation direction for the next router-driven navigation
 - `setSwipeGesture(true | false | 'auto')` - Enable, disable, or auto-detect edge swipe-back gesture
 
 `swipe-gesture="auto"` uses Capacitor's runtime helpers (`Capacitor.isNativePlatform()` and `Capacitor.getPlatform()`) and enables the gesture only for native iOS apps. Use `swipe-gesture="true"` to force it on any platform or `swipe-gesture="false"` to disable it.
@@ -452,6 +479,17 @@ Footer container. Use with `slot="footer"`.
 | `'root'`    | Replace animation (fade)               |
 | `'none'`    | No animation                           |
 
+### Navigation Actions
+
+Navigation actions control the recorded stack independently from the visual animation. This is useful when a router `replace` or native navigation reset should feel like a forward page push but must not leave a swipe-back entry behind.
+
+```typescript
+setNavigation('root', 'forward');
+router.replace('/home');
+```
+
+`setNavigation('root', 'forward')` clears the transition stack after the navigation and plays the forward animation. Swipe-back stays disabled because there is no previous page.
+
 ### Helper Functions
 
 All framework bindings export these helper functions:
@@ -462,6 +500,10 @@ initTransitions({ platform: 'auto' });
 
 // Set the direction for the next navigation
 setDirection('forward' | 'back' | 'root' | 'none');
+
+// Set the stack action and animation direction for the next navigation
+setNavigation('root', 'forward');
+setNavigation('root'); // direction is optional and defaults to the same value as the stack action.
 
 // Set up a router outlet element
 setupRouterOutlet(element, options);
@@ -498,6 +540,7 @@ const controller = createTransitionController({
 await controller.push(element, { direction: 'forward' });
 await controller.pop({ direction: 'back' });
 await controller.setRoot(element, { direction: 'root' });
+await controller.setRoot(element, { direction: 'forward' });
 
 // Lifecycle hooks
 controller.registerLifecycle('page-id', {

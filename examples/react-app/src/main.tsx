@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-ro
 import {
   initTransitions,
   setDirection,
+  setNavigation,
   setupPage,
   setupRouterOutlet,
 } from '@capgo/capacitor-transitions/react'
@@ -140,7 +141,7 @@ function NestedPage() {
   }
 
   const goHome = () => {
-    setDirection('root')
+    setNavigation('root', 'forward')
     navigate('/')
   }
 
@@ -159,9 +160,7 @@ function NestedPage() {
           <h2>Deeply Nested View</h2>
           <p>This is a nested page to demonstrate multi-level navigation.</p>
 
-          <button className="primary-button" onClick={goHome}>
-            Go to Root (with fade)
-          </button>
+          <button className="primary-button" onClick={goHome}>Reset to Home</button>
         </div>
       </cap-content>
     </cap-page>

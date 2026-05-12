@@ -20,6 +20,8 @@ import type {
   NavigationEvent,
   TransitionLifecycle,
   TransitionAnimationOptions,
+  NavigationAction,
+  TransitionDirection,
 } from './types';
 import {
   supportsViewTransitions,
@@ -297,7 +299,11 @@ export class TransitionController {
    * Replace all pages with a new root
    */
   async setRoot(enteringEl: HTMLElement, config: TransitionConfig = {}): Promise<TransitionResult> {
-    return this.navigate(enteringEl, { ...config, direction: 'root' });
+    return this.navigate(enteringEl, {
+      ...config,
+      direction: config.direction ?? 'root',
+      navigationAction: 'root',
+    });
   }
 
   /**
@@ -305,14 +311,15 @@ export class TransitionController {
    */
   async navigate(enteringEl: HTMLElement, config: TransitionConfig = {}): Promise<TransitionResult> {
     const direction = config.direction || 'forward';
+    const navigationAction = this.resolveNavigationAction(direction, config.navigationAction);
     const enteringState = this.createPageState(enteringEl);
     const leavingState = this.currentPage;
 
     return this.navigateWithStates(enteringState, leavingState, config, () => {
-      if (direction === 'root') {
+      if (navigationAction === 'root') {
         // Clear the stack and set new root
         this.pageStack = [enteringState];
-      } else if (direction === 'back' && this.pageStack.length > 0) {
+      } else if (navigationAction === 'back' && this.pageStack.length > 0) {
         // Routers usually create a fresh element for the destination route.
         // Drop both the leaving page and the stale cached destination so the
         // internal stack mirrors the visible route stack.
@@ -323,11 +330,33 @@ export class TransitionController {
           this.lifecycleCallbacks.delete(staleEnteringState.id);
         }
         this.pageStack.push(enteringState);
+      } else if (navigationAction === 'none' && this.pageStack.length > 0) {
+        const staleState = this.pageStack.pop();
+        if (staleState && staleState.element !== enteringState.element) {
+          staleState.element.remove();
+          this.lifecycleCallbacks.delete(staleState.id);
+        }
+        this.pageStack.push(enteringState);
       } else {
         // Push new page onto stack
         this.pageStack.push(enteringState);
       }
     });
+  }
+
+  private resolveNavigationAction(
+    direction: TransitionDirection,
+    navigationAction: NavigationAction | undefined,
+  ): NavigationAction {
+    if (navigationAction) {
+      return navigationAction;
+    }
+
+    if (direction === 'root' || direction === 'back') {
+      return direction;
+    }
+
+    return 'forward';
   }
 
   /**

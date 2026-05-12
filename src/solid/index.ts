@@ -2,9 +2,16 @@
  * Solid bindings for @capgo/capacitor-transitions
  */
 
+import { getDefaultNavigationDirection, setOutletDirectionIntent, setOutletNavigationIntent } from '../core/navigation';
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
-import type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
+import type {
+  TransitionGlobalConfig,
+  TransitionDirection,
+  NavigationEvent,
+  SwipeGestureOption,
+  NavigationAction,
+} from '../core/types';
 
 // Ensure web components are registered
 import '../components';
@@ -43,7 +50,23 @@ export function setDirection(direction: TransitionDirection): void {
 
   if (typeof document !== 'undefined') {
     for (const outlet of document.querySelectorAll('cap-router-outlet')) {
-      (outlet as HTMLElement).dataset.direction = direction;
+      setOutletDirectionIntent(outlet, direction);
+    }
+  }
+}
+
+/**
+ * Set the navigation action and animation direction for the next router navigation.
+ */
+export function setNavigation(
+  action: NavigationAction,
+  direction: TransitionDirection = getDefaultNavigationDirection(action),
+): void {
+  globalDirection = direction;
+
+  if (typeof document !== 'undefined') {
+    for (const outlet of document.querySelectorAll('cap-router-outlet')) {
+      setOutletNavigationIntent(outlet, action, direction);
     }
   }
 }
@@ -122,7 +145,13 @@ export function createTransitionNavigate(
 }
 
 // Re-export types
-export type { TransitionGlobalConfig, TransitionDirection, NavigationEvent, SwipeGestureOption } from '../core/types';
+export type {
+  TransitionGlobalConfig,
+  TransitionDirection,
+  NavigationEvent,
+  SwipeGestureOption,
+  NavigationAction,
+} from '../core/types';
 
 // Export controller for advanced usage
 export { TransitionController } from '../core/transition-controller';

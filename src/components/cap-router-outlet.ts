@@ -5,12 +5,14 @@
  */
 
 import { isNativeSwipeGesturePlatform } from '../core/native-platform';
+import { getDefaultNavigationDirection, setOutletDirectionIntent, setOutletNavigationIntent } from '../core/navigation';
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
 import type {
   TransitionConfig,
   TransitionGlobalConfig,
   TransitionDirection,
+  NavigationAction,
   PageState,
   SwipeGestureOption,
 } from '../core/types';
@@ -243,10 +245,16 @@ export class CapRouterOutlet extends HTMLElement {
     // Determine direction from page, outlet, or default to forward.
     // Framework adapters can set direction on the outlet right before navigation.
     const outletDirection = this.dataset.direction as TransitionDirection | undefined;
+    const outletNavigationAction = this.dataset.navigationAction as NavigationAction | undefined;
     const explicitDirection = (page.dataset.direction as TransitionDirection | undefined) || outletDirection;
+    const explicitNavigationAction =
+      (page.dataset.navigationAction as NavigationAction | undefined) || outletNavigationAction;
     const direction = this.resolveNavigationDirection(explicitDirection);
     if (outletDirection) {
       delete this.dataset.direction;
+    }
+    if (outletNavigationAction) {
+      delete this.dataset.navigationAction;
     }
     const skipTransition = this.skipNextHistoryBackTransition && direction === 'back';
     this.skipNextHistoryBackTransition = false;
@@ -258,9 +266,13 @@ export class CapRouterOutlet extends HTMLElement {
     this.pendingPage = page;
 
     try {
-      const result = await this.controller.navigate(page, { direction, duration: skipTransition ? 0 : undefined });
+      const result = await this.controller.navigate(page, {
+        direction,
+        navigationAction: explicitNavigationAction,
+        duration: skipTransition ? 0 : undefined,
+      });
       if (result.success) {
-        this.recordCompletedNavigation(direction, { hadPageBefore });
+        this.recordCompletedNavigation(explicitNavigationAction ?? direction, { hadPageBefore });
       }
     } finally {
       this.pendingPage = null;
@@ -414,6 +426,16 @@ export class CapRouterOutlet extends HTMLElement {
     } else {
       this.updateSwipeGestureListeners();
     }
+  }
+
+  /**
+   * Set the navigation stack action and animation direction for the next router-driven navigation.
+   */
+  setNavigation(
+    action: NavigationAction,
+    direction: TransitionDirection = getDefaultNavigationDirection(action),
+  ): void {
+    setOutletNavigationIntent(this, action, direction);
   }
 
   /**
@@ -940,7 +962,7 @@ export class CapRouterOutlet extends HTMLElement {
 
     if (shouldUseHistory) {
       this.skipNextHistoryBackTransition = true;
-      this.dataset.direction = 'back';
+      setOutletDirectionIntent(this, 'back');
       window.history.back();
       return;
     }

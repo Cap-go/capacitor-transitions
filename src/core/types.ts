@@ -6,6 +6,9 @@
 /** Direction of the navigation transition */
 export type TransitionDirection = 'forward' | 'back' | 'root' | 'none';
 
+/** Navigation stack action to record independently from the animation direction */
+export type NavigationAction = 'forward' | 'back' | 'root' | 'none';
+
 /** Platform-specific animation styles */
 export type TransitionPlatform = 'ios' | 'android' | 'auto';
 
@@ -37,6 +40,8 @@ export interface TransitionConfig {
   easing?: TransitionEasing;
   /** Direction of transition */
   direction?: TransitionDirection;
+  /** Navigation stack action (default: follows direction, except 'none' keeps push behavior for compatibility) */
+  navigationAction?: NavigationAction;
   /** Which elements to animate (default: 'all') */
   targets?: TransitionTarget[];
   /** Custom animation keyframes for entering element */

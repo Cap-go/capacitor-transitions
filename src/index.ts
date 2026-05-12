@@ -16,6 +16,7 @@ import type { CapRouterOutlet, CapPage, CapHeader, CapContent, CapFooter } from 
 
 export type {
   TransitionDirection,
+  NavigationAction,
   TransitionPlatform,
   ResolvedPlatform,
   TransitionTarget,

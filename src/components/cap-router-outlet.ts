@@ -5,7 +5,7 @@
  */
 
 import { isNativeSwipeGesturePlatform } from '../core/native-platform';
-import { getDefaultNavigationDirection, setOutletNavigationIntent } from '../core/navigation';
+import { getDefaultNavigationDirection, setOutletDirectionIntent, setOutletNavigationIntent } from '../core/navigation';
 import type { TransitionController } from '../core/transition-controller';
 import { createTransitionController } from '../core/transition-controller';
 import type {
@@ -962,7 +962,7 @@ export class CapRouterOutlet extends HTMLElement {
 
     if (shouldUseHistory) {
       this.skipNextHistoryBackTransition = true;
-      this.dataset.direction = 'back';
+      setOutletDirectionIntent(this, 'back');
       window.history.back();
       return;
     }

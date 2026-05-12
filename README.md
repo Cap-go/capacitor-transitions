@@ -502,7 +502,8 @@ initTransitions({ platform: 'auto' });
 setDirection('forward' | 'back' | 'root' | 'none');
 
 // Set the stack action and animation direction for the next navigation
-setNavigation('forward' | 'back' | 'root' | 'none', 'forward' | 'back' | 'root' | 'none');
+setNavigation('root', 'forward');
+setNavigation('root'); // direction is optional and defaults to the same value as the stack action.
 
 // Set up a router outlet element
 setupRouterOutlet(element, options);

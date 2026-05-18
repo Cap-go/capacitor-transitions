@@ -1,0 +1,52 @@
+name: Deploy mobile demo to Capgo
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Capgo channel to deploy
+        default: dev
+        required: true
+        type: choice
+        options:
+          - dev
+          - production
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    name: Deploy React mobile demo
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun i
+      - name: Resolve channel
+        id: channel
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.channel }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == *"-alpha."* ]]; then
+            echo "value=dev" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=production" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build mobile demo
+        run: bun run build:mobile
+      - name: Deploy to Capgo
+        run: bunx @capgo/cli@latest bundle upload --channel ${{ steps.channel.outputs.value }} --delta
+        env:
+          CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}

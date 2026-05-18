@@ -9,10 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/core": "^8.3.4",
+    "@capgo/capacitor-updater": "^8.46.1",
+    "@capgo/capacitor-transitions": "file:../..",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "react-router-dom": "^7.0.0",
-    "@capgo/capacitor-transitions": "file:../.."
+    "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

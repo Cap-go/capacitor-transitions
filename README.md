@@ -632,6 +632,32 @@ npm install
 npm run dev
 ```
 
+### Mobile Demo App
+
+The repository also includes a Capacitor shell for testing the React demo on real devices and through Capgo. It uses the app id `app.capgo.capacitor.transitions`, app name `Capgo Transitions`, and `examples/react-app/dist` as the native web bundle.
+
+To build and copy the demo into the native projects:
+
+```bash
+npm install
+npm run build:mobile
+npx cap sync
+```
+
+To run it locally:
+
+```bash
+npx cap run ios
+npx cap run android
+```
+
+To deploy an OTA bundle to Capgo:
+
+```bash
+npm run build:mobile
+npx @capgo/cli@latest bundle upload --channel dev --delta
+```
+
 ## License
 
 MIT

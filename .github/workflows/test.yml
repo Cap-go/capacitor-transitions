@@ -33,3 +33,6 @@ jobs:
       - name: Verify
         id: verify_code
         run: bun run verify:web
+      - name: Verify mobile shell
+        id: verify_mobile
+        run: bun run verify:mobile

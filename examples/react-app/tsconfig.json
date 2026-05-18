@@ -12,6 +12,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@capgo/capacitor-transitions": ["../../src/index.ts"],
+      "@capgo/capacitor-transitions/react": ["../../src/react/index.ts"]
+    },
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true

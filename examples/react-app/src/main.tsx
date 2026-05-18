@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core'
 import React, { useRef, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
@@ -10,6 +11,15 @@ import {
 } from '@capgo/capacitor-transitions/react'
 import '@capgo/capacitor-transitions'
 import './styles.css'
+
+async function notifyCapgoReady() {
+  if (!Capacitor.isNativePlatform()) return
+
+  const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+  await CapacitorUpdater.notifyAppReady()
+}
+
+void notifyCapgoReady().catch(() => undefined)
 
 // Initialize transitions
 initTransitions({ platform: 'auto' })

@@ -636,6 +636,8 @@ npm run dev
 
 The repository also includes a Capacitor shell for testing the React demo on real devices and through Capgo. It uses the app id `app.capgo.capacitor.transitions`, app name `Capgo Transitions`, and `examples/react-app/dist` as the native web bundle.
 
+Capacitor CLI requires Node.js 22 or newer.
+
 To build and copy the demo into the native projects:
 
 ```bash
@@ -655,7 +657,7 @@ To deploy an OTA bundle to Capgo:
 
 ```bash
 npm run build:mobile
-npx @capgo/cli@latest bundle upload --channel dev --delta
+npx @capgo/cli@latest bundle upload app.capgo.capacitor.transitions --channel dev --delta
 ```
 
 ## License

@@ -47,6 +47,6 @@ jobs:
       - name: Build mobile demo
         run: bun run build:mobile
       - name: Deploy to Capgo
-        run: bunx @capgo/cli bundle upload app.capgo.capacitor.transitions --channel ${{ steps.channel.outputs.value }} --delta
+        run: bunx @capgo/cli@7.102.0 bundle upload app.capgo.capacitor.transitions --channel ${{ steps.channel.outputs.value }} --delta
         env:
           CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}

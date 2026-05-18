@@ -82,8 +82,8 @@ jobs:
             args+=(--p12-password "$P12_PASSWORD")
           fi
 
-          bunx @capgo/cli@latest "${args[@]}"
+          bunx @capgo/cli "${args[@]}"
       - name: Request iOS build through Capgo CLI
         env:
           CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
-        run: bunx @capgo/cli@latest build request "${{ steps.app_config.outputs.app_id }}" --platform ios --path . --output-upload --output-retention 7d
+        run: bunx @capgo/cli build request "${{ steps.app_config.outputs.app_id }}" --platform ios --path . --output-upload --output-retention 7d

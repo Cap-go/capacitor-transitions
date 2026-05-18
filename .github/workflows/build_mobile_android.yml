@@ -60,7 +60,7 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_FILE" | base64 --decode > "$keystore_path"
           printf '%s' "$PLAY_CONFIG_JSON" | base64 --decode > "$play_config_path"
 
-          bunx @capgo/cli@latest build credentials save \
+          bunx @capgo/cli build credentials save \
             --local \
             --appId "${{ steps.app_config.outputs.app_id }}" \
             --platform android \
@@ -74,4 +74,4 @@ jobs:
       - name: Request Android build through Capgo CLI
         env:
           CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
-        run: bunx @capgo/cli@latest build request "${{ steps.app_config.outputs.app_id }}" --platform android --path . --output-upload --output-retention 7d
+        run: bunx @capgo/cli build request "${{ steps.app_config.outputs.app_id }}" --platform android --path . --output-upload --output-retention 7d

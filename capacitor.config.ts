@@ -24,9 +24,6 @@ const config: CapacitorConfig = {
       version: pkg.version,
     },
   },
-  android: {
-    webContentsDebuggingEnabled: true,
-  },
 };
 
 export default config;

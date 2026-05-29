@@ -24,7 +24,8 @@ permissions:
 
 jobs:
   deploy:
-    timeout-minutes: 30
+    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     name: Deploy React mobile demo
     steps:

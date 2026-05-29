@@ -10,7 +10,8 @@ on:
 
 jobs:
   web:
-    timeout-minutes: 30
+    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     name: 'Build code and test'
     steps:

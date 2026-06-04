@@ -20,7 +20,7 @@
       "enabled": false
     },
     {
-      "matchManagers": ["swift-pm"],
+      "matchManagers": ["swift"],
       "matchPackagePatterns": [
         "^https://github.com/ionic-team/capacitor-swift-pm\\.git$",
         "^ionic-team/capacitor-swift-pm$",

@@ -810,6 +810,8 @@ export class CapRouterOutlet extends HTMLElement {
       return;
     }
 
+    let transitionStartedOnThisMove = false;
+
     if (!pointer.dragging && deltaX > this.swipeGestureThreshold && absX > absY) {
       if (!this.getSwipeBackDestination()) {
         this.cancelSwipeGesturePointer(event.pointerId);
@@ -818,6 +820,7 @@ export class CapRouterOutlet extends HTMLElement {
 
       pointer.dragging = true;
       pointer.transitionStarted = this.controller.beginInteractiveBack({ direction: 'back' });
+      transitionStartedOnThisMove = pointer.transitionStarted;
 
       if (!pointer.transitionStarted) {
         this.cancelSwipeGesturePointer(event.pointerId);
@@ -832,7 +835,12 @@ export class CapRouterOutlet extends HTMLElement {
       }
 
       if (event.cancelable) event.preventDefault();
-      this.queueSwipeGestureStep(deltaX / pointer.width);
+      const step = deltaX / pointer.width;
+      if (transitionStartedOnThisMove) {
+        this.controller.stepInteractiveBack(step);
+      } else {
+        this.queueSwipeGestureStep(step);
+      }
     }
   };
 

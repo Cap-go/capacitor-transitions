@@ -40,6 +40,9 @@ const DEFAULT_CONFIG: Required<TransitionGlobalConfig> = {
   detectPlatform,
 };
 
+const IOS_RELEASE_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const IOS_CANCEL_EASING = 'cubic-bezier(1, 0, 0.68, 0.28)';
+
 interface InteractiveBackTransition {
   enteringState: PageState;
   leavingState: PageState;
@@ -516,8 +519,13 @@ export class TransitionController {
       return;
     }
 
+    const releaseEasing = targetProgress === 1 ? IOS_RELEASE_EASING : IOS_CANCEL_EASING;
     const finished = transition.animations.map((animation, index) => {
       const duration = transition.animationDurations[index] ?? transition.duration;
+      this.applyInteractiveReleaseEasing(animation, releaseEasing);
+      const currentProgress = duration > 0 ? transition.progress : targetProgress;
+      const easedStep = this.getIOSReleaseTimeForProgress(currentProgress, targetProgress);
+      animation.currentTime = duration * easedStep;
       const currentTime = typeof animation.currentTime === 'number' ? animation.currentTime : 0;
       const targetTime = duration * targetProgress;
       const distance = Math.abs(targetTime - currentTime);
@@ -535,6 +543,40 @@ export class TransitionController {
 
     await Promise.all(finished);
     transition.progress = targetProgress;
+  }
+
+  private applyInteractiveReleaseEasing(animation: Animation, easing: string): void {
+    animation.effect?.updateTiming({ easing });
+  }
+
+  private getIOSReleaseTimeForProgress(progress: number, targetProgress: 0 | 1): number {
+    const clampedProgress = Math.max(0, Math.min(progress, 0.9999));
+    if (targetProgress === 1) {
+      return this.getCubicBezierTimeForProgress(clampedProgress, 0.32, 0.72, 0, 1);
+    }
+
+    return this.getCubicBezierTimeForProgress(clampedProgress, 1, 0, 0.68, 0.28);
+  }
+
+  private getCubicBezierTimeForProgress(progress: number, x1: number, y1: number, x2: number, y2: number): number {
+    let low = 0;
+    let high = 1;
+
+    for (let iteration = 0; iteration < 16; iteration += 1) {
+      const mid = (low + high) / 2;
+      if (this.sampleCubicBezier(mid, y1, y2) < progress) {
+        low = mid;
+      } else {
+        high = mid;
+      }
+    }
+
+    return this.sampleCubicBezier((low + high) / 2, x1, x2);
+  }
+
+  private sampleCubicBezier(time: number, point1: number, point2: number): number {
+    const inverseTime = 1 - time;
+    return 3 * inverseTime * inverseTime * time * point1 + 3 * inverseTime * time * time * point2 + time * time * time;
   }
 
   /**

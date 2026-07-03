@@ -1,0 +1,29 @@
+{
+  "name": "capacitor-transitions-demo",
+  "version": "1.0.0",
+  "description": "Capacitor demo for @capgo/capacitor-transitions",
+  "type": "module",
+  "keywords": [
+    "capacitor",
+    "mobile"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capgo/capacitor-transitions": "file:..",
+    "@capgo/capacitor-updater": "^8.45.11"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "vite": "^7.3.1",
+    "typescript": "^5.9.3"
+  },
+  "author": "",
+  "license": "ISC"
+}

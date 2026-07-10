@@ -72,7 +72,8 @@
     "example:install": "cd example-app && bun install --frozen-lockfile",
     "example:build": "bun run build && cd example-app && bun install --frozen-lockfile && bun run build",
     "capgo:app:add": "bunx @capgo/cli@latest app add app.capgo.capacitor.transitions --name \"Capgo Transitions\" --icon example-app/assets/capgo-icon.png",
-    "deploy:capgo:example": "bun run example:build && cd example-app && bunx @capgo/cli@latest bundle upload app.capgo.capacitor.transitions --path dist --channel production --package-json package.json,../package.json --node-modules node_modules,../node_modules --delta --no-key --ignore-checksum-check --version-exists-ok"
+    "deploy:capgo:example": "bun run example:build && cd example-app && bunx @capgo/cli@latest bundle upload app.capgo.capacitor.transitions --path dist --channel production --package-json package.json,../package.json --node-modules node_modules,../node_modules --delta --no-key --ignore-checksum-check --version-exists-ok",
+    "changelog:ai": "node scripts/generate-ai-changelog.mjs"
   },
   "keywords": [
     "capacitor",

@@ -37,6 +37,8 @@ const RULES = [
     id: "getConfigValue",
     pattern: /\bgetConfigValue\s*\(/,
     exts: [".java", ".kt", ".swift"],
+    ignoreLine:
+      /\b(?:fun|func)\s+getConfigValue\b|\bgetConfigValue\s*\(\s*String\b|\bgetConfigValue\s*\([^)]*\bfrom\s*:/,
   },
   {
     id: "@NativePlugin",
@@ -215,7 +217,7 @@ if (!cap.android && !cap.ios) {
   process.exit(0);
 }
 
-const scanRoots = collectScanRoots(pluginDir, cap);
+const scanRoots = collectScanRoots(pluginDir, pkg);
 const allExts = [...new Set(RULES.flatMap((r) => r.exts))];
 const files = [];
 for (const root of scanRoots) {

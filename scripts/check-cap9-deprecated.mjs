@@ -38,7 +38,7 @@ const RULES = [
     pattern: /\bgetConfigValue\s*\(/,
     exts: [".java", ".kt", ".swift"],
     ignoreLine:
-      /\b(?:fun|func)\s+getConfigValue\b|\bgetConfigValue\s*\(\s*String\b|\bgetConfigValue\s*\([^)]*\bfrom\s*:/,
+      /\b(?:fun|func)\s+getConfigValue\b|\bgetConfigValue\s*\(\s*String\s+\w+\b|\bgetConfigValue\s*\([^)]*\bfrom\s*:/,
   },
   {
     id: "@NativePlugin",

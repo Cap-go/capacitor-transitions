@@ -83,8 +83,8 @@ h1 {
   padding: 1.2rem;
   border-radius: 14px;
   background: linear-gradient(120deg, rgba(34, 211, 238, 0.12), rgba(99, 102, 241, 0.12));
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 1.05rem;
   color: #0f172a;
 }
@@ -102,7 +102,10 @@ button {
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
   background: linear-gradient(120deg, #22d3ee, #6366f1);
   color: #ffffff;
   box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
@@ -125,5 +128,12 @@ button:not(:disabled):hover {
   filter: brightness(1.05);
 }
 
-.toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; }
-.page { min-height: 60vh; }
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+.page {
+  min-height: 60vh;
+}

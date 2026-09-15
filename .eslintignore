@@ -4,3 +4,4 @@ examples
 docs
 android
 ios
+scripts/check-cap9-deprecated.mjs

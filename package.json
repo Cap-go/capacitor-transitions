@@ -107,13 +107,15 @@
     "@capacitor/status-bar": "^8.0.2",
     "@capgo/capacitor-updater": "^8.46.1",
     "@capgo/cli": "7.125.4",
-    "@ionic/eslint-config": "^0.4.0",
+    "@ionic/eslint-config": "^0.5.0",
     "@ionic/prettier-config": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^10.0.0",
     "eslint-plugin-import": "^2.31.0",
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
@@ -153,9 +155,6 @@
     "solid-js": {
       "optional": true
     }
-  },
-  "eslintConfig": {
-    "extends": "@ionic/eslint-config/recommended"
   },
   "prettier": "@ionic/prettier-config"
 }

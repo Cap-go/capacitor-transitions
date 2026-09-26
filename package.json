@@ -106,7 +106,7 @@
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@capgo/capacitor-updater": "^8.46.1",
-    "@capgo/cli": "7.125.4",
+    "@capgo/cli": "8.67.0",
     "@ionic/eslint-config": "^0.5.0",
     "@ionic/prettier-config": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^8.70.0",

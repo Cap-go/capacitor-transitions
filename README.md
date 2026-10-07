@@ -1,11 +1,27 @@
 # @capgo/capacitor-transitions
 
-<a href="https://capgo.app/">
+<a href="https://capgo.app/?ref=plugin_transitions">
   <img
     src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-transitions"
     alt="Capgo - Instant updates for Capacitor"
   />
 </a>
+
+<div align="center">
+  <p>
+    <b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without
+    waiting for app store review.
+  </p>
+  <h2>
+    <a href="https://capgo.app/register/?ref=plugin_transitions">➡️ Get started for free</a>
+  </h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p>
+    <a href="https://capgo.app/consulting/?ref=plugin_transitions">
+      Missing a feature? We'll build the plugin for you 💪
+    </a>
+  </p>
+</div>
 
 Framework-agnostic page transitions for Capacitor apps. iOS-style navigation without opinions.
 

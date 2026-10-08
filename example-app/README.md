@@ -1,17 +1,23 @@
-# @capgo/capacitor-transitions
+# Cap Transitions example app
 
-Minimal Capacitor demo linked to the local plugin via `file:..`.
+Interactive vanilla JS demo for `@capgo/capacitor-transitions` (linked via `file:..`).
 
-## Actions
-
-- **Open details** – Push a second page with Cap Transitions.
-- See `examples/` for React, Vue, Angular, and other framework demos.
-
-## Getting started
+## Run locally
 
 ```bash
 bun install
 bun run start
 ```
 
-Add native shells with `bunx cap add ios` or `bunx cap add android` from this folder.
+From the repo root:
+
+```bash
+bun run example:build
+```
+
+## What to try
+
+- Adjust platform, duration, easing, and swipe-back on the home screen.
+- Open Alpha, Beta, or Gamma to push detail and nested pages with transitions.
+- Use **Back**, **Pop**, or **Reset stack** to exercise `outlet.pop` and `setRoot`.
+- Watch the event log for page lifecycle callbacks.

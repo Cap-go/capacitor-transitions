@@ -8,21 +8,21 @@
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
-    <title>@capgo/capacitor-transitions</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Cap Transitions Demo</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <cap-router-outlet>
-      <cap-page>
-        <cap-header slot="header"><div class="toolbar"><h1>@capgo/capacitor-transitions</h1></div></cap-header>
-        <cap-content slot="content">
-          <main class="container page">
-            <p class="lead">Cap Transitions custom elements are registered. Use the framework demos in <code>examples/</code> for full navigation flows.</p>
-            <p id="platform">Detecting platform...</p>
-          </main>
-        </cap-content>
-      </cap-page>
-    </cap-router-outlet>
+    <div id="app-shell">
+      <header class="brand-header" aria-hidden="true">
+        <img src="/assets/capgo-icon.png" alt="" class="brand-logo" width="32" height="32" />
+        <div class="brand-text">
+          <span class="brand-title">Cap Transitions</span>
+          <span class="brand-subtitle">Interactive demo</span>
+        </div>
+      </header>
+      <cap-router-outlet id="outlet" platform="auto" keep-in-dom="true" max-cached="8" swipe-gesture="auto"></cap-router-outlet>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

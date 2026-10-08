@@ -9,8 +9,8 @@
 
 <div align="center">
   <p>
-    <b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without
-    waiting for app store review.
+    <b>Capgo</b>: push fixes to your Capacitor users in minutes, build signed iOS and Android apps without a Mac, and
+    roll back in one click.
   </p>
   <h2>
     <a href="https://capgo.app/register/?ref=plugin_transitions">➡️ Get started for free</a>

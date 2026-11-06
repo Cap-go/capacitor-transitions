@@ -123,7 +123,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-router-dom": "^7.0.0",
-    "tsup": "^8.0.0",
+    "tsup": "^9.0.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.0",
     "vitest": "^5.0.0"

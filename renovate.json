@@ -28,6 +28,20 @@
       ],
       "allowedVersions": "8.0.0",
       "enabled": false
+    },
+    {
+      "description": "Cap-go plugins follow the official Capacitor Android toolchain (Gradle wrapper, Android Gradle plugin, Kotlin). Renovate must never bump it.",
+      "matchManagers": ["gradle-wrapper"],
+      "enabled": false
+    },
+    {
+      "description": "Cap-go plugins follow the official Capacitor Android toolchain (Gradle wrapper, Android Gradle plugin, Kotlin). Renovate must never bump it.",
+      "matchPackageNames": [
+        "/^com\\.android\\.tools\\.build:gradle$/",
+        "/^com\\.android\\.(library|application)/",
+        "/^org\\.jetbrains\\.kotlin[:.]/"
+      ],
+      "enabled": false
     }
   ]
 }

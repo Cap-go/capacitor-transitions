@@ -21,11 +21,6 @@
       "import": "./dist/vue/index.mjs",
       "require": "./dist/vue/index.js"
     },
-    "./angular": {
-      "types": "./dist/angular/index.d.ts",
-      "import": "./dist/angular/index.mjs",
-      "require": "./dist/angular/index.js"
-    },
     "./svelte": {
       "types": "./dist/svelte/index.d.ts",
       "import": "./dist/svelte/index.mjs",
@@ -57,7 +52,7 @@
     "deploy:capgo:dev": "bun run build:mobile && bunx @capgo/cli@7.102.0 bundle upload app.capgo.capacitor.transitions --channel dev --delta",
     "typecheck": "tsc --noEmit",
     "verify": "bun run verify:web && bun run verify:ios && bun run verify:android",
-    "verify:web": "bun run build",
+    "verify:web": "bun run build && bun run check:exports",
     "verify:mobile": "bun run build:mobile",
     "verify:ios": "bun run build:mobile && xcodebuild -project ios/App/App.xcodeproj -scheme App -destination generic/platform=iOS CODE_SIGNING_ALLOWED=NO",
     "verify:android": "bun run build:mobile && cd android && ./gradlew build test",
@@ -68,6 +63,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "bun run build",
+    "check:exports": "node scripts/check-exports.mjs",
     "check:wiring": "node scripts/check-capacitor-plugin-wiring.mjs",
     "check:cap9-deprecated": "bun scripts/check-cap9-deprecated.mjs",
     "example:install": "cd example-app && bun install --frozen-lockfile",
@@ -132,7 +128,6 @@
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "vue": ">=3.0.0",
-    "@angular/core": ">=17.0.0",
     "svelte": ">=4.0.0",
     "solid-js": ">=1.0.0"
   },
@@ -144,9 +139,6 @@
       "optional": true
     },
     "vue": {
-      "optional": true
-    },
-    "@angular/core": {
       "optional": true
     },
     "svelte": {

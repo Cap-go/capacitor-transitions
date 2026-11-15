@@ -36,6 +36,11 @@ jobs:
       - name: Build
         id: build_code
         run: bun run build
+      - name: Check package exports
+        run: bun run check:exports
+      - name: Test
+        id: test_code
+        run: bun run test
       - name: Verify
         id: verify_code
         run: bun run verify:web

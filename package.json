@@ -36,7 +36,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "node scripts/clean-dist.mjs && tsup",
     "dev": "tsup --watch",
     "dev:examples": "bun scripts/dev-frameworks.ts",
     "dev:examples:all": "bun scripts/dev-frameworks.ts --all",
@@ -62,7 +62,7 @@
     "prettier": "prettier-pretty-check \"**/*.{css,html,ts,js,json,md}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "bun run build",
+    "prepublishOnly": "bun run build && bun run check:exports",
     "check:exports": "node scripts/check-exports.mjs",
     "check:wiring": "node scripts/check-capacitor-plugin-wiring.mjs",
     "check:cap9-deprecated": "bun scripts/check-cap9-deprecated.mjs",

@@ -60,7 +60,7 @@
     "fmt": "bun run eslint -- --fix && bun run prettier -- --write",
     "eslint": "eslint .",
     "prettier": "prettier-pretty-check \"**/*.{css,html,ts,js,json,md}\"",
-    "test": "vitest run",
+    "test": "bun run build && vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "bun run build && bun run check:exports",
     "check:exports": "node scripts/check-exports.mjs",
